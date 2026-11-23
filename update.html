@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SIGMA – Mise à jour des données</title>
+<style>
+:root{--bg:#f6f7f9;--card:#fff;--tx:#1b1f27;--mut:#667085;--bd:#dfe3ea;--ac:#4350d0;--ok:#1a8a4a;--ko:#d33;--wa:#e08a00}
+@media(prefers-color-scheme:dark){:root{--bg:#10141b;--card:#1a202b;--tx:#eef1f6;--mut:#98a2b3;--bd:#2c3442;--ac:#6b78ff}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--tx);font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;padding:16px}
+.c{max-width:520px;margin:0 auto;background:var(--card);border:1px solid var(--bd);border-radius:16px;padding:20px}
+h1{font-size:20px;margin:0 0 4px}.s{color:var(--mut);font-size:14px;margin:0 0 16px}
+.st{display:flex;gap:10px;margin:18px 0 6px;font-weight:600}.st b{background:var(--ac);color:#fff;border-radius:99px;width:24px;height:24px;display:inline-flex;align-items:center;justify-content:center;font-size:13px;flex:none}
+input[type=password],input[type=text]{width:100%;font-size:17px;padding:12px;border-radius:10px;border:1px solid var(--bd);background:var(--bg);color:var(--tx)}
+input[type=file]{width:100%;padding:12px;border:1px dashed var(--bd);border-radius:10px;background:var(--bg);color:var(--tx)}
+button{width:100%;padding:13px;font-size:16px;border-radius:10px;border:0;background:var(--ac);color:#fff;font-weight:600;margin-top:12px}
+button:disabled{opacity:.45}
+#msg{margin-top:14px;font-size:15px;min-height:22px}.ok{color:var(--ok)}.ko{color:var(--ko)}.wa{color:var(--wa)}
+label.k{display:flex;gap:8px;align-items:flex-start;font-size:14px;margin-top:10px}.hide{display:none}
+ol{padding-left:20px;font-size:14px;color:var(--mut)}
+</style></head><body><div class="c">
+<h1>SIGMA – Mise à jour des données</h1>
+<p class="s">Prépare le fichier chiffré <b>data.enc</b> à partir du nouveau fichier SIGMA (.xlsx). Rien n’est envoyé sur internet : tout se passe sur cet appareil.</p>
+<div class="st"><b>1</b>Choisir le nouveau fichier SIGMA</div>
+<input id="f" type="file" accept=".xlsx,.xlsm,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet">
+<div class="st"><b>2</b>Saisir le mot de passe de l’application</div>
+<input id="pw" type="password" placeholder="Mot de passe" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
+<label class="k"><input id="show" type="checkbox"> Afficher le mot de passe</label>
+<label class="k hide" id="chgw"><input id="chg" type="checkbox"> Je veux changer le mot de passe (les collègues devront saisir le nouveau)</label>
+<div class="st"><b>3</b>Créer le fichier</div>
+<button id="go">Chiffrer et télécharger data.enc</button>
+<div id="msg"></div>
+<div class="st"><b>4</b>Mettre en ligne</div>
+<ol>
+<li>Ouvrir le dépôt <b>sigma</b> sur github.com.</li>
+<li><b>Ajouter un fichier</b> puis <b>Télécharger des fichiers</b>.</li>
+<li>Choisir le fichier <b>data.enc</b> qui vient d’être téléchargé (il remplace l’ancien).</li>
+<li><b>Commit changes</b>. Les collègues ont les nouvelles données à leur prochaine ouverture avec internet.</li>
+</ol>
+</div>
+<script>
+const $=s=>document.querySelector(s),IT=250000;
+const b64=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
+function toB64(u){let s='';for(let i=0;i<u.length;i+=0x8000)s+=String.fromCharCode.apply(null,u.subarray(i,i+0x8000));return btoa(s)}
+async function deriveKey(p,salt,iter,usage){
+  const km=await crypto.subtle.importKey('raw',new TextEncoder().encode(p),'PBKDF2',false,['deriveKey']);
+  return crypto.subtle.deriveKey({name:'PBKDF2',salt,iterations:iter,hash:'SHA-256'},km,{name:'AES-GCM',length:256},false,[usage]);
+}
+async function encryptData(raw,p,name){
+  const salt=crypto.getRandomValues(new Uint8Array(16)),iv=crypto.getRandomValues(new Uint8Array(12));
+  const key=await deriveKey(p,salt,IT,'encrypt');
+  const ct=new Uint8Array(await crypto.subtle.encrypt({name:'AES-GCM',iv},key,raw));
+  return JSON.stringify({v:1,name,iter:IT,salt:toB64(salt),iv:toB64(iv),ct:toB64(ct)});
+}
+async function tryDecrypt(D,p){
+  const key=await deriveKey(p,b64(D.salt),D.iter,'decrypt');
+  await crypto.subtle.decrypt({name:'AES-GCM',iv:b64(D.iv)},key,b64(D.ct));
+}
+function say(t,c){$('#msg').className=c||'';$('#msg').textContent=t}
+$('#show').onchange=e=>$('#pw').type=e.target.checked?'text':'password';
+$('#go').onclick=async()=>{
+  const f=$('#f').files[0],p=$('#pw').value.trim();
+  if(!f){say('Choisissez d’abord le fichier .xlsx.','ko');return}
+  if(!p){say('Saisissez le mot de passe.','ko');return}
+  if(!window.crypto||!crypto.subtle){say('Ouvrez cette page en HTTPS (adresse github.io).','ko');return}
+  $('#go').disabled=true;say('Lecture du fichier…');
+  try{
+    const raw=new Uint8Array(await f.arrayBuffer());
+    if(raw.length<10000||raw[0]!==0x50||raw[1]!==0x4b)throw new Error('Ce fichier n’est pas un classeur Excel (.xlsx) valide.');
+    let note='';
+    try{
+      const r=await fetch('data.enc',{cache:'no-store'});
+      if(r.ok){
+        const D=await r.json();
+        try{await tryDecrypt(D,p);note='Mot de passe identique à celui en ligne.'}
+        catch(_){
+          if(!$('#chg').checked){$('#chgw').classList.remove('hide');say('Ce mot de passe est différent de celui des données en ligne. Vérifiez la saisie, ou cochez « Je veux changer le mot de passe » si c’est voulu.','wa');$('#go').disabled=false;return}
+          note='Nouveau mot de passe : à communiquer aux collègues.';
+        }
+      }else note='Comparaison avec les données en ligne impossible.';
+    }catch(_){note='Comparaison avec les données en ligne impossible.'}
+    say('Chiffrement…');
+    const out=await encryptData(raw,p,f.name);
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(new Blob([out],{type:'application/octet-stream'}));
+    a.download='data.enc';document.body.appendChild(a);a.click();a.remove();
+    say('data.enc créé ('+(out.length/1048576).toFixed(1)+' Mo). '+note+' Passez à l’étape 4.','ok');
+  }catch(e){say('Erreur : '+e.message,'ko')}
+  $('#go').disabled=false;
+};
+</script></body></html>
