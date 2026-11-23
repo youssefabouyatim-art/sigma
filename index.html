@@ -93,17 +93,40 @@ header{padding:14px 28px}header h1{font-size:20px}
 [data-sigma-view="mobile"] .bar select, [data-sigma-view="mobile"] .bar input { max-width: none; min-width: 0; flex: 1 1 42% }
 [data-sigma-view="mobile"] .bar #q { flex-basis: 100%; font-size: 16px }
 [data-sigma-view="mobile"] button, [data-sigma-view="mobile"] select { min-height: 42px }
-[data-sigma-view="mobile"] .tw { background: transparent; border: 0; max-height: none }
-[data-sigma-view="mobile"] .tw table, [data-sigma-view="mobile"] .tw tbody { display: block }
-[data-sigma-view="mobile"] .tw thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%) }
-[data-sigma-view="mobile"] .tw tr { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin: 0 0 8px; padding: 11px; background: var(--card); border: 1px solid var(--bd); border-radius: 10px }
-[data-sigma-view="mobile"] .tw tr.r-late { border-left: 4px solid #d33 }
-[data-sigma-view="mobile"] .tw tr.r-wa { border-left: 4px solid #e08a00 }
-[data-sigma-view="mobile"] .tw tr.r-ok { border-left: 4px solid #1a8a4a }
-[data-sigma-view="mobile"] .tw td { display: none; border: 0; padding: 0; max-width: none; box-shadow: none; text-align: left }
-[data-sigma-view="mobile"] .tw td.mobile-cell { display: block }
-[data-sigma-view="mobile"] .tw td.mobile-cell::before { content: attr(data-l); display: block; font-size: 11px; color: var(--mut) }
-[data-sigma-view="mobile"] .tw td[data-key="Des_Article"] { grid-column: 1 / -1; white-space: normal; overflow-wrap: anywhere }
+[data-sigma-view="mobile"] .tw[data-mobile-layout="cards"] { background: transparent; border: 0; max-height: none }
+[data-sigma-view="mobile"] .tw[data-mobile-layout="cards"] table, [data-sigma-view="mobile"] .tw[data-mobile-layout="cards"] tbody { display: block }
+[data-sigma-view="mobile"] .tw[data-mobile-layout="cards"] thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%) }
+[data-sigma-view="mobile"] .tw[data-mobile-layout="cards"] tr { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin: 0 0 8px; padding: 11px; background: var(--card); border: 1px solid var(--bd); border-radius: 10px }
+[data-sigma-view="mobile"] .tw[data-mobile-layout="cards"] tr.r-late { border-left: 4px solid #d33 }
+[data-sigma-view="mobile"] .tw[data-mobile-layout="cards"] tr.r-wa { border-left: 4px solid #e08a00 }
+[data-sigma-view="mobile"] .tw[data-mobile-layout="cards"] tr.r-ok { border-left: 4px solid #1a8a4a }
+[data-sigma-view="mobile"] .tw[data-mobile-layout="cards"] td { display: none; border: 0; padding: 0; max-width: none; text-align: left }
+[data-sigma-view="mobile"] .tw[data-mobile-layout="cards"] td.mobile-cell { display: block }
+[data-sigma-view="mobile"] .tw[data-mobile-layout="cards"] td.mobile-cell::before { content: attr(data-l); display: block; font-size: 11px; color: var(--mut) }
+[data-sigma-view="mobile"] .tw[data-mobile-layout="cards"] td[data-key="Des_Article"] { grid-column: 1 / -1; white-space: normal; overflow-wrap: anywhere }
+
+.mobile-only { display: none }
+[data-sigma-view="mobile"] #mobileTrackingToggle {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  margin: 12px 0;
+  padding: 10px 14px;
+  text-align: left;
+}
+#mobileTrackingAction { color: var(--ac); font-weight: 650 }
+[data-sigma-view="mobile"] #trackingPanel h2 { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%) }
+[data-sigma-view="mobile"] .mobile-detail-options { display: block; margin: 0 0 10px }
+.mobile-layout-buttons { display: inline-flex; gap: 4px; padding: 3px; background: var(--card); border: 1px solid var(--bd); border-radius: 10px }
+.mobile-layout-buttons button { min-width: 88px; border-color: transparent; font-weight: 650 }
+.mobile-layout-buttons button[aria-pressed="true"] { background: #a3540c; color: #fff; border-color: #a3540c }
+#mobileTableHint { margin: 5px 0 0 }
+[data-sigma-view="mobile"] .tw[data-mobile-layout="table"] { max-height: 62vh; overflow: auto }
+[data-sigma-view="mobile"] .tw[data-mobile-layout="table"] th,
+[data-sigma-view="mobile"] .tw[data-mobile-layout="table"] td { display: table-cell; max-width: 260px }
+[data-sigma-view="mobile"] .tw[data-mobile-layout="cards"] tbody td:first-child { box-shadow: none }
 </style>
 </head>
 <body>
@@ -158,6 +181,9 @@ header{padding:14px 28px}header h1{font-size:20px}
       <label><input id="showTracking" type="checkbox" aria-controls="trackingPanel" checked> Indicateurs de suivi</label>
       <label><input id="showPurchases" type="checkbox" aria-controls="purchasesPanel" checked> Analyse des achats</label>
     </fieldset>
+    <button id="mobileTrackingToggle" class="mobile-only" type="button" aria-controls="trackingPanel" aria-expanded="true">
+      <strong>Indicateurs de suivi</strong><span id="mobileTrackingAction">Masquer</span>
+    </button>
     <section id="trackingPanel" aria-labelledby="overview">
       <h2 id="overview">Indicateurs de suivi</h2>
       <p class="scope" id="scope"></p>
@@ -177,9 +203,16 @@ header{padding:14px 28px}header h1{font-size:20px}
       </div>
       <details class="card amounts"><summary>Montants de lignes par devise</summary><div id="amounts"></div></details>
     </section>
-    <h2>Détail des DA et commandes</h2>
+    <h2 id="detailHeading">Détail des DA et commandes</h2>
+    <div class="mobile-detail-options mobile-only">
+      <div class="mobile-layout-buttons" role="group" aria-label="Affichage des DA et commandes">
+        <button id="showMobileTable" type="button" aria-pressed="false" aria-controls="detailsResults">Tableau</button>
+        <button id="showMobileCards" type="button" aria-pressed="true" aria-controls="detailsResults">Cartes</button>
+      </div>
+      <p id="mobileTableHint" class="sub" hidden>Fais glisser le tableau pour voir les autres colonnes.</p>
+    </div>
     <div class="lg"><span><i style="background:#d33"></i>En retard</span><span><i style="background:#e08a00"></i>Commande avec reste dû</span><span><i style="background:#1a8a4a"></i>Entièrement reçu</span><span>Retard : <b style="color:#e6b800">≤ 30 j</b> · <b style="color:#e08a00">31–90 j</b> · <b style="color:#d33">&gt; 90 j</b></span></div>
-    <div class="tw"><table><thead id="th"></thead><tbody id="tb"></tbody></table></div>
+    <div class="tw" id="detailsResults"><table><thead id="th"></thead><tbody id="tb"></tbody></table></div>
     <div class="pg"><span id="cnt"></span><label>Lignes par page <select id="pageSize"><option>25</option><option selected>50</option><option>100</option></select></label><span><button id="pv">←</button> <span id="pn"></span> <button id="nx">→</button></span></div>
   </div>
 </main>
@@ -409,6 +442,46 @@ const lock = $('#lock');
 const passwordInput = $('#lpw');
 const unlockButton = $('#lbtn');
 const message = $('#lmsg');
+const mobileTrackingToggle = $('#mobileTrackingToggle');
+const mobileTableButton = $('#showMobileTable');
+const mobileCardsButton = $('#showMobileCards');
+const mobileTrackingKey = 'sigma_mobile_tracking';
+const mobileLayoutKey = 'sigma_mobile_layout';
+let mobileTrackingVisible = true;
+let mobileLayout = 'cards';
+try{
+  mobileTrackingVisible = localStorage.getItem(mobileTrackingKey) !== 'hidden';
+  if(localStorage.getItem(mobileLayoutKey) === 'table') mobileLayout = 'table';
+}catch(_){}
+
+function updateMobileTracking(){
+  $('#trackingPanel').hidden = !mobileTrackingVisible;
+  mobileTrackingToggle.setAttribute('aria-expanded', String(mobileTrackingVisible));
+  $('#mobileTrackingAction').textContent = mobileTrackingVisible ? 'Masquer' : 'Afficher';
+}
+mobileTrackingToggle.onclick = ()=>{
+  mobileTrackingVisible = !mobileTrackingVisible;
+  updateMobileTracking();
+  try{ localStorage.setItem(mobileTrackingKey, mobileTrackingVisible ? 'visible' : 'hidden'); }catch(_){}
+};
+
+function updateMobileLayout(){
+  const isTable = mobileLayout === 'table';
+  const results = $('#detailsResults');
+  results.dataset.mobileLayout = mobileLayout;
+  results.scrollLeft = 0;
+  mobileTableButton.setAttribute('aria-pressed', String(isTable));
+  mobileCardsButton.setAttribute('aria-pressed', String(!isTable));
+  $('#mobileTableHint').hidden = !isTable;
+}
+for(const [button, layout] of [[mobileTableButton, 'table'], [mobileCardsButton, 'cards']]){
+  button.onclick = ()=>{
+    if(mobileLayout === layout) return;
+    mobileLayout = layout;
+    updateMobileLayout();
+    try{ localStorage.setItem(mobileLayoutKey, layout); }catch(_){}
+  };
+}
 
 function showVersionPicker(){
   workspace.hidden = true;
@@ -420,7 +493,12 @@ for(const button of picker.querySelectorAll('[data-view]')){
   button.onclick = ()=>{
     const version = button.dataset.view;
     document.documentElement.dataset.sigmaView = version;
-    $('#trackingPanel').hidden = version === 'pc' && !$('#showTracking').checked;
+    if(version === 'mobile'){
+      updateMobileTracking();
+      updateMobileLayout();
+    }else{
+      $('#trackingPanel').hidden = !$('#showTracking').checked;
+    }
     $('#app .mf').open = version === 'pc';
     picker.hidden = true;
     workspace.hidden = false;
