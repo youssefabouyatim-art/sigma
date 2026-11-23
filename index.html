@@ -91,7 +91,6 @@ header{padding:14px 28px}header h1{font-size:20px}
 [data-sigma-view="mobile"] .k { padding: 10px }
 [data-sigma-view="mobile"] .k small { display: none }
 [data-sigma-view="mobile"] .bar select, [data-sigma-view="mobile"] .bar input { max-width: none; min-width: 0; flex: 1 1 42% }
-[data-sigma-view="mobile"] .bar #q { flex-basis: 100%; font-size: 16px }
 [data-sigma-view="mobile"] button, [data-sigma-view="mobile"] select { min-height: 42px }
 [data-sigma-view="mobile"] .tw[data-mobile-layout="cards"] { background: transparent; border: 0; max-height: none }
 [data-sigma-view="mobile"] .tw[data-mobile-layout="cards"] table, [data-sigma-view="mobile"] .tw[data-mobile-layout="cards"] tbody { display: block }
@@ -127,6 +126,19 @@ header{padding:14px 28px}header h1{font-size:20px}
 [data-sigma-view="mobile"] .tw[data-mobile-layout="table"] th,
 [data-sigma-view="mobile"] .tw[data-mobile-layout="table"] td { display: table-cell; max-width: 260px }
 [data-sigma-view="mobile"] .tw[data-mobile-layout="cards"] tbody td:first-child { box-shadow: none }
+
+.detail-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 12px 0 }
+.detail-actions a { background: #a3540c; color: #fff; border-radius: 8px; padding: 8px 11px; font-weight: 600 }
+.detail-actions button[aria-pressed="true"] { border-color: var(--ac); color: var(--ac) }
+.favorite-star { color: var(--ac) }
+#relanceHint { margin: 0 0 9px }
+
+.search-pair { flex: 1 1 350px; min-width: 0; display: grid; gap: 8px }
+.search-row { display: grid; grid-template-columns: minmax(125px, 155px) minmax(0, 1fr); gap: 8px; min-width: 0 }
+.search-row input, .search-row select { width: 100%; min-width: 0 }
+[data-sigma-view="mobile"] .search-pair { flex-basis: 100% }
+[data-sigma-view="mobile"] .search-row { grid-template-columns: minmax(0, 1fr) }
+[data-sigma-view="mobile"] .search-row input { font-size: 16px }
 </style>
 </head>
 <body>
@@ -164,16 +176,23 @@ header{padding:14px 28px}header h1{font-size:20px}
   <div id="app" class="hide">
     
     <div class="bar">
-      <div class="chips" style="flex:1 1 100%"><button data-v="">Toutes</button><button data-v="late">En retard</button><button data-v="critical">Retard et stock nul</button><button data-v="old">Retard > 90 j</button><button data-v="noPromise">Sans date de promesse</button><button data-v="soon">Échéance sous 7 j</button><button data-v="rcv">Reçu, pas en stock</button><button data-v="due">Dû mais en stock</button><button data-v="nocmd">Sans commande</button></div><select id="searchField" aria-label="Champ de recherche">
+      <div class="chips" style="flex:1 1 100%"><button data-v="">Toutes</button><button data-v="relance">À relancer</button><button data-v="favorite">Favoris</button><button data-v="late">En retard</button><button data-v="critical">Retard et stock nul</button><button data-v="old">Retard > 90 j</button><button data-v="noPromise">Sans date de promesse</button><button data-v="soon">Échéance sous 7 j</button><button data-v="rcv">Reçu, pas en stock</button><button data-v="due">Dû mais en stock</button><button data-v="nocmd">Sans commande</button></div><div class="search-pair"><div class="search-row"><select id="searchField" aria-label="Champ de recherche">
         <option value="" data-placeholder="Rechercher (DA, article, fournisseur, N° commande…)">Tous les champs</option>
         <option value="DA" data-placeholder="Rechercher par numéro de DA">Numéro de DA</option>
         <option value="Article" data-placeholder="Rechercher par code article">Code article</option>
         <option value="Des_Article" data-placeholder="Rechercher par désignation">Désignation</option>
         <option value="N_Cde" data-placeholder="Rechercher par numéro de commande">N° de commande</option>
         <option value="Fournisseur" data-placeholder="Rechercher par fournisseur">Fournisseur</option>
-      </select><input id="q" aria-label="Texte à rechercher" placeholder="Rechercher (DA, article, fournisseur, N° commande…)"><input id="fNum" placeholder="Num (ex. 1, 2)" style="flex:none;min-width:0;width:130px">
+      </select><input id="q" aria-label="Texte à rechercher" placeholder="Rechercher (DA, article, fournisseur, N° commande…)"></div><div class="search-row"><select id="searchField2" aria-label="Champ de recherche 2">
+        <option value="" data-placeholder="Rechercher (DA, article, fournisseur, N° commande…)">Tous les champs</option>
+        <option value="DA" data-placeholder="Rechercher par numéro de DA">Numéro de DA</option>
+        <option value="Article" data-placeholder="Rechercher par code article">Code article</option>
+        <option value="Des_Article" data-placeholder="Rechercher par désignation">Désignation</option>
+        <option value="N_Cde" data-placeholder="Rechercher par numéro de commande">N° de commande</option>
+        <option value="Fournisseur" data-placeholder="Rechercher par fournisseur">Fournisseur</option>
+      </select><input id="q2" aria-label="Deuxième texte à rechercher" placeholder="Rechercher (DA, article, fournisseur, N° commande…)"></div></div><input id="fNum" placeholder="Num (ex. 1, 2)" style="flex:none;min-width:0;width:130px">
       <details open class="mf" style="flex:1 1 100%"><summary>Plus de filtres</summary><div class="bar" style="margin:8px 0 0"><select id="fSt"></select><select id="fFo"></select><select id="fCa"></select><select id="fAc"></select><select id="fDe"></select>
-      <select id="fV" style="display:none"><option value="">Toutes les vues</option><option value="late">En retard</option><option value="critical">Retard et stock nul</option><option value="old">Retard > 90 j</option><option value="noPromise">Sans date de promesse</option><option value="soon">Échéance sous 7 j</option><option value="rcv">Reçu, pas en stock</option><option value="due">Dû mais déjà en stock</option><option value="nocmd">Sans commande</option></select><input type="date" id="d1" title="Commandé depuis"><input type="date" id="d2" title="Commandé jusqu’au"></div></details>
+      <select id="fV" style="display:none"><option value="">Toutes les vues</option><option value="relance">À relancer</option><option value="favorite">Favoris</option><option value="late">En retard</option><option value="critical">Retard et stock nul</option><option value="old">Retard > 90 j</option><option value="noPromise">Sans date de promesse</option><option value="soon">Échéance sous 7 j</option><option value="rcv">Reçu, pas en stock</option><option value="due">Dû mais déjà en stock</option><option value="nocmd">Sans commande</option></select><input type="date" id="d1" title="Commandé depuis"><input type="date" id="d2" title="Commandé jusqu’au"></div></details>
       <button id="bReset">Réinitialiser</button>
     </div>
     <fieldset class="display-options">
@@ -211,6 +230,7 @@ header{padding:14px 28px}header h1{font-size:20px}
       </div>
       <p id="mobileTableHint" class="sub" hidden>Fais glisser le tableau pour voir les autres colonnes.</p>
     </div>
+    <p id="relanceHint" class="sub" hidden>Commandes en retard avec stock à zéro, classées par retard décroissant par défaut.</p>
     <div class="lg"><span><i style="background:#d33"></i>En retard</span><span><i style="background:#e08a00"></i>Commande avec reste dû</span><span><i style="background:#1a8a4a"></i>Entièrement reçu</span><span>Retard : <b style="color:#e6b800">≤ 30 j</b> · <b style="color:#e08a00">31–90 j</b> · <b style="color:#d33">&gt; 90 j</b></span></div>
     <div class="tw" id="detailsResults"><table><thead id="th"></thead><tbody id="tb"></tbody></table></div>
     <div class="pg"><span id="cnt"></span><label>Lignes par page <select id="pageSize"><option>25</option><option selected>50</option><option>100</option></select></label><span><button id="pv">←</button> <span id="pn"></span> <button id="nx">→</button></span></div>
@@ -249,7 +269,57 @@ function asDate(value){
 }
 const hasOrder=row=>Boolean(row.N_Cde)&&String(row.N_Cde).trim()!=='0';
 const outstanding=row=>hasOrder(row)&&row.Qte_Due>0;
+const favoritesKey = 'sigma_favorites';
+const favorites = new Set();
+try{
+  const stored = JSON.parse(localStorage.getItem(favoritesKey) || '[]');
+  if(Array.isArray(stored)) stored.filter(value=>typeof value==='string').forEach(value=>favorites.add(value));
+}catch(_){}
+
+function followUpMail(row){
+  const order = String(row.N_Cde).replace(/[\r\n]+/g,' ');
+  const subject = 'Relance livraison – Commande '+order;
+  const body = [
+    'Bonjour,',
+    '',
+    'Pouvez-vous nous confirmer la date de livraison prévue pour cette ligne de commande ?',
+    '',
+    'Commande : '+order,
+    'Demande d’achat : '+(row.DA || 'Non renseignée'),
+    'Code article : '+(row.Article || 'Non renseigné'),
+    'Quantité restante : '+fn(row.Qte_Due)+(row.UO ? ' '+row.UO : ''),
+    'Date de promesse : '+(fd(row.Date_promesse) || 'Non renseignée'),
+    '',
+    'Merci pour votre retour.',
+    '',
+    'Cordialement,'
+  ].join('\r\n');
+  return 'mailto:?subject='+encodeURIComponent(subject)+'&body='+encodeURIComponent(body);
+}
+
+function bindFollowUpActions(row){
+  const favoriteButton = $('#favoriteAction');
+  function syncFavoriteButton(){
+    const saved = favorites.has(row._id);
+    favoriteButton.textContent = saved ? 'Retirer des favoris' : 'Ajouter aux favoris';
+    favoriteButton.setAttribute('aria-pressed', String(saved));
+  }
+  syncFavoriteButton();
+  favoriteButton.onclick = ()=>{
+    if(favorites.has(row._id)) favorites.delete(row._id);
+    else favorites.add(row._id);
+    try{ localStorage.setItem(favoritesKey, JSON.stringify([...favorites])); }catch(_){}
+    syncFavoriteButton();
+    render();
+  };
+
+  const mailButton = $('#followUpMail');
+  mailButton.hidden = !outstanding(row);
+  if(!mailButton.hidden) mailButton.href = followUpMail(row);
+}
+
 const VIEWS={
+ relance:r=>r.late&&r._stockZero,favorite:r=>favorites.has(r._id),
  late:r=>r.late,critical:r=>r.late&&r.Qte_Mise_Disposition<=0,old:r=>r.retard>90,
  noPromise:r=>outstanding(r)&&!r.Date_promesse,
  soon:r=>outstanding(r)&&r.Date_promesse instanceof Date&&day(r.Date_promesse)-day(today)>=0&&day(r.Date_promesse)-day(today)<=7,
@@ -257,7 +327,7 @@ const VIEWS={
 };
 const searchText=row=>Object.entries(row).filter(([k,v])=>!k.startsWith('_')&&['string','number'].includes(typeof v)).map(([,v])=>v).join(' ').toLowerCase();
 const COLS=[['DA','DA'],['Status','Statut'],['Date_Creation','Création','d'],['Article','Code article'],['Des_Article','Désignation'],['Desc_Categorie','Catégorie'],['Quantite','Qté dem.','n'],['N_Cde','N° Cde'],['Fournisseur','Fournisseur'],['Date_Cde','Date Cde','d'],['Mnt','Montant','n'],['Devise','Devise'],['Qte_Rec','Reçu','n'],['Qte_Due','Dû','n'],['Qte_Mise_Disposition','En stock','n'],['Date_promesse','Promise','d'],['retard','Retard (j)','n'],['Date_Livraisons','Livraison','d'],['Acheteur_Cde','Acheteur'],['Num','Ligne DA'],['Ste','Site'],['UO','Unité'],['N_appel_Cde','Appel commande'],['Date_promesse_Initiale','Promesse initiale','d'],['date_prévue_livraison_site','Livraison prévue site','d']];
-const mobileColumns=new Set(['DA','Status','Article','N_Cde','Des_Article','Qte_Due','Qte_Mise_Disposition','Date_promesse','retard']);
+const mobileColumns=new Set(['DA','Status','Article','N_Cde','Des_Article','Qte_Due','Qte_Mise_Disposition','Date_promesse','retard','Acheteur_Cde']);
 const EDIT=['Article','Des_Article','Desc_Categorie','Fournisseur','Description_DA','Justification'];
 const SC={APPROVED:'#1a8a4a',RETURNED:'#e08a00','IN PROCESS':'#2f6fe0',REJECTED:'#d33',INCOMPLETE:'#7a8494',SYSTEM_SAV:'#8a4fd0'};
 const FILT=[['fSt','Status','Tous les statuts'],['fFo','Fournisseur','Tous les fournisseurs'],['fCa','Desc_Categorie','Toutes les catégories'],['fAc','Acheteur_Cde','Tous les acheteurs'],['fDe','Devise','Toutes les devises']];
@@ -284,6 +354,8 @@ function displayRows(raw,fileName){
     if(!raw.length||missing.length)throw new Error(raw.length?'Colonnes absentes : '+missing.join(', '):'Première feuille vide.');
     today=new Date();
     rows=raw.map(o=>{const x=Object.create(null);for(const k in o){const key=k.split(' / ')[0].trim();if(!key||key.startsWith('_')||key in x)continue;let v=o[k];if(typeof v==='string')v=v.trim();x[key]=v}
+      const available = x.Qte_Mise_Disposition;
+      x._stockZero = (typeof available === 'number' || typeof available === 'string' && available !== '') && Number(String(available).replace(/\s/g,'').replace(',','.')) === 0;
       x.Mnt=num(x.Mnt);x.Quantite=num(x.Quantite);x.Qte_Rec=num(x.Qte_Rec);x.Qte_Due=num(x.Qte_Due);x.Qte_Mise_Disposition=num(x.Qte_Mise_Disposition);
       for(const [key,,type] of COLS)if(type==='d')x[key]=asDate(x[key])??x[key];
       const delay=x.Date_promesse instanceof Date ? day(today)-day(x.Date_promesse) : 0;
@@ -294,12 +366,15 @@ function displayRows(raw,fileName){
     FILT.forEach(([id,k,all])=>{const vals=[...new Set(rows.map(r=>String(r[k]??'')).filter(Boolean))].sort();$('#'+id).replaceChildren(new Option(all,''),...vals.map(v=>new Option(v,v)))});
     page=0;render();
 }
+const searchControls=[['searchField','q'],['searchField2','q2']];
 function filt(){
-  const q=$('#q').value.toLowerCase().trim(),v=$('#fV').value,a=asDate($('#d1').value),b=asDate($('#d2').value);
-  const searchField=$('#searchField').value;
+  const v=$('#fV').value,a=asDate($('#d1').value),b=asDate($('#d2').value);
+  const searches=searchControls.map(([field,input])=>[
+    $('#'+field).value,$('#'+input).value.toLowerCase().trim()
+  ]).filter(([,query])=>query);
   const numbers=new Set($('#fNum').value.split(/[\s,;]+/).filter(Boolean));
   const selected=FILT.map(([id,key])=>[key,$('#'+id).value]).filter(([,value])=>value);
-  return rows.filter(r=>(!q||(searchField?String(r[searchField]??'').toLowerCase():r._s).includes(q))&&selected.every(([key,value])=>String(r[key]??'')===value)
+  return rows.filter(r=>searches.every(([field,query])=>(field?String(r[field]??'').toLowerCase():r._s).includes(query))&&selected.every(([key,value])=>String(r[key]??'')===value)
     &&(!numbers.size||numbers.has(String(r.Num).trim()))&&(!v||VIEWS[v](r))
     &&(!a||(r.Date_Cde instanceof Date&&day(r.Date_Cde)>=day(a)))
     &&(!b||(r.Date_Cde instanceof Date&&day(r.Date_Cde)<=day(b))));
@@ -367,6 +442,7 @@ function render(){
     const active=b.dataset.v===$('#fV').value;
     b.classList.toggle('on',active);b.setAttribute('aria-pressed',active);
   });
+  $('#relanceHint').hidden=$('#fV').value!=='relance';
   view=filt();
   const m=metrics(view);
   const kpis=[
@@ -399,20 +475,27 @@ function render(){
   const {k,d}=sort;view.sort((a,b)=>{const x=a[k],y=b[k];return (x>y?1:x<y?-1:0)*d});
   const pages=Math.max(1,Math.ceil(view.length/PS));page=Math.min(page,pages-1);
   $('#th').innerHTML='<tr>'+COLS.map(c=>'<th data-k="'+c[0]+'" class="'+(c[2]==='n'?'r':'')+'">'+c[1]+(sort.k===c[0]?(sort.d>0?' ▲':' ▼'):'')+'</th>').join('')+'</tr>';
-  $('#tb').innerHTML=view.slice(page*PS,page*PS+PS).map((r,i)=>'<tr class="'+(r.late?'r-late':outstanding(r)?'r-wa':r.Qte_Rec>0&&r.Qte_Due<=0?'r-ok':'')+'" data-i="'+(page*PS+i)+'">'+COLS.map(c=>{let v=r[c[0]];v=c[2]==='d'?escHtml(fd(v)||v):c[2]==='n'?(c[0]==='retard'&&!v?'':fn(v)):escHtml(v);if(c[0]==='DA'&&gn(r))v+=' <span class="nt" title="Note">✎</span>';if(c[0]==='Article'&&r._e)v+=' <span class="nt" title="Modifié">●</span>';if(c[0]==='retard'&&v)v='<span class="tag '+(r.retard>90?'g3':r.retard>30?'g2':'g1')+'">'+v+'</span>';
+  $('#tb').innerHTML=view.slice(page*PS,page*PS+PS).map((r,i)=>'<tr class="'+(r.late?'r-late':outstanding(r)?'r-wa':r.Qte_Rec>0&&r.Qte_Due<=0?'r-ok':'')+'" data-i="'+(page*PS+i)+'">'+COLS.map(c=>{let v=r[c[0]];v=c[2]==='d'?escHtml(fd(v)||v):c[2]==='n'?(c[0]==='retard'&&!v?'':fn(v)):escHtml(v);if(c[0]==='DA'&&favorites.has(r._id))v+=' <span class="favorite-star" title="Favori">★</span>';if(c[0]==='DA'&&gn(r))v+=' <span class="nt" title="Note">✎</span>';if(c[0]==='Article'&&r._e)v+=' <span class="nt" title="Modifié">●</span>';if(c[0]==='retard'&&v)v='<span class="tag '+(r.retard>90?'g3':r.retard>30?'g2':'g1')+'">'+v+'</span>';
     const cls=(c[2]==='n'?'r ':'')+((c[0]==='Date_promesse'||c[0]==='retard')&&r.late?'late':'')+(c[0]==='Qte_Due'&&r.Qte_Due>0?' wa':'')+((c[0]==='Qte_Mise_Disposition'||c[0]==='Qte_Rec')&&r[c[0]]>0?' ok':'');return '<td class="'+cls+(mobileColumns.has(c[0])?' mobile-cell':'')+'" data-key="'+c[0]+'" data-l="'+c[1]+'" title="'+String(v).replace(/<[^>]*>/g,'').replace(/"/g,'&quot;')+'">'+(c[0]==='Status'&&v?'<span class="tag s-'+escHtml(String(r[c[0]]).replace(/ /g,'_'))+'">'+v+'</span>':v)+'</td>'}).join('')+'</tr>').join('');
   $('#cnt').textContent=view.length.toLocaleString('fr-FR')+' résultat(s)';$('#pn').textContent='Page '+(page+1)+' / '+pages;$('#pv').disabled=page===0;$('#nx').disabled=page>=pages-1;
 }
 $('#th').onclick=e=>{const k=e.target.closest('th')?.dataset.k;if(!k)return;sort={k,d:sort.k===k?-sort.d:1};render()};
 $('#pageSize').onchange=e=>{PS=Number(e.target.value);page=0;render()};
 $('#pv').onclick=()=>{if(page>0){page--;render()}};$('#nx').onclick=()=>{page++;render()};
-['q','fNum','fSt','fFo','fCa','fAc','fDe','fV','d1','d2'].forEach(id=>$('#'+id).addEventListener('input',()=>{page=0;render()}));
-function updateSearchPlaceholder(){
-  const field=$('#searchField');
-  $('#q').placeholder=field.selectedOptions[0].dataset.placeholder;
+['q','q2','fNum','fSt','fFo','fCa','fAc','fDe','fV','d1','d2'].forEach(id=>$('#'+id).addEventListener('input',()=>{page=0;render()}));
+function updateSearchPlaceholder(field,input){
+  input.placeholder=field.selectedOptions[0].dataset.placeholder;
 }
-$('#searchField').addEventListener('change',()=>{updateSearchPlaceholder();page=0;render()});
-$('#bReset').onclick=()=>{$('#q').value='';$('#searchField').value='';updateSearchPlaceholder();FILT.forEach(([id])=>$('#'+id).value='');$('#fV').value='';$('#fNum').value='';$('#d1').value='';$('#d2').value='';page=0;render()};
+for(const [fieldId,inputId] of searchControls){
+  const field=$('#'+fieldId),input=$('#'+inputId);
+  field.addEventListener('change',()=>{updateSearchPlaceholder(field,input);page=0;render()});
+}
+$('#bReset').onclick=()=>{
+  for(const [fieldId,inputId] of searchControls){
+    const field=$('#'+fieldId),input=$('#'+inputId);
+    input.value='';field.value='';updateSearchPlaceholder(field,input);
+  }
+  FILT.forEach(([id])=>$('#'+id).value='');$('#fV').value='';$('#fNum').value='';$('#d1').value='';$('#d2').value='';page=0;render()};
 $('#bFile').onclick=$('#drop').onclick=()=>$('#file').click();
 $('#file').onchange=e=>{const file=e.target.files[0];e.target.value='';if(file)load(file)};
 ['dragover','dragleave','drop'].forEach(t=>document.addEventListener(t,e=>{e.preventDefault();$('#drop').classList.toggle('on',t==='dragover');if(t==='drop'&&e.dataTransfer.files[0])load(e.dataTransfer.files[0])}));
@@ -423,7 +506,8 @@ async function dl(name,data){const d=window.claude?await claude.use('downloads')
 function gn(r){try{return localStorage.getItem('n:'+r._id)||''}catch(_){return ''}}
 $('#bXl').onclick=()=>{if(typeof XLSX==='undefined'){alert('Le module Excel est indisponible. Vérifiez votre connexion puis rouvrez SIGMA PC.');return}const data=view.map(r=>{const o={};COLS.forEach(c=>o[c[1]]=r[c[0]]);o.Note=gn(r);o['Modifié']=r._e?'oui':'';return o});const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(data),'Filtré');dl('sigma_filtre.xlsx',XLSX.write(wb,{type:'array',bookType:'xlsx'}))};
 $('#tb').onclick=e=>{const tr=e.target.closest('tr');if(!tr)return;const r=view[+tr.dataset.i];
-$('#md').innerHTML='<div><div style="display:flex;justify-content:space-between;align-items:center"><b>DA '+escHtml(r.DA)+' · ligne '+escHtml(r.Num)+'</b><span><button id="rs">Rétablir l’original</button> <button id="x">Fermer</button></span></div><p class="sub">Note personnelle (enregistrée dans ce navigateur)</p><textarea id="nt" rows="3">'+escHtml(gn(r))+'</textarea><table>'+EDIT.map(k=>'<tr><td>'+k+'</td><td><input data-k="'+k+'" style="width:100%" value="'+String(r[k]??'').replace(/&/g,'&amp;').replace(/"/g,'&quot;')+'"></td></tr>').join('')+Object.entries(r).filter(([k,v])=>k[0]!=='_'&&!EDIT.includes(k)&&typeof v!=='boolean'&&v!==''&&v!=null).map(([k,v])=>'<tr><td>'+escHtml(k)+'</td><td>'+(v instanceof Date?fd(v):escHtml(v))+'</td></tr>').join('')+'</table></div>';
+$('#md').innerHTML='<div><div style="display:flex;justify-content:space-between;align-items:center"><b>DA '+escHtml(r.DA)+' · ligne '+escHtml(r.Num)+'</b><span><button id="rs">Rétablir l’original</button> <button id="x">Fermer</button></span></div><div class="detail-actions"><button id="favoriteAction" type="button"></button><a id="followUpMail" hidden>Préparer une relance</a></div><p class="sub">Note personnelle (enregistrée dans ce navigateur)</p><textarea id="nt" rows="3">'+escHtml(gn(r))+'</textarea><table>'+EDIT.map(k=>'<tr><td>'+k+'</td><td><input data-k="'+k+'" style="width:100%" value="'+String(r[k]??'').replace(/&/g,'&amp;').replace(/"/g,'&quot;')+'"></td></tr>').join('')+Object.entries(r).filter(([k,v])=>k[0]!=='_'&&!EDIT.includes(k)&&typeof v!=='boolean'&&v!==''&&v!=null).map(([k,v])=>'<tr><td>'+escHtml(k)+'</td><td>'+(v instanceof Date?fd(v):escHtml(v))+'</td></tr>').join('')+'</table></div>';
+bindFollowUpActions(r);
 $('#md').classList.remove('hide');
 $('#rs').onclick=()=>document.querySelectorAll('#md input[data-k]').forEach(i=>i.value=r._o[i.dataset.k]??'');
 $('#x').onclick=()=>{const ed={};document.querySelectorAll('#md input[data-k]').forEach(i=>{const k=i.dataset.k;r[k]=i.value;if(i.value!==String(r._o[k]??''))ed[k]=i.value});r._e=Object.keys(ed).length>0;r._s=searchText(r);try{r._e?localStorage.setItem('e:'+r._id,JSON.stringify(ed)):localStorage.removeItem('e:'+r._id)}catch(_){}try{const t=$('#nt').value;t?localStorage.setItem('n:'+r._id,t):localStorage.removeItem('n:'+r._id)}catch(_){}$('#md').classList.add('hide');render()}};
@@ -433,7 +517,7 @@ function sl(s){const i=$('#logo');i.src=s;i.classList.remove('hide')}
 try{const s=localStorage.getItem('logo');if(s)sl(s)}catch(_){}
 $('#bLogo').onclick=()=>$('#fLogo').click();
 $('#fLogo').onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{sl(r.result);try{localStorage.setItem('logo',r.result)}catch(_){}};r.readAsDataURL(f)};
-document.querySelectorAll('.chips button').forEach(b=>b.onclick=()=>{$('#fV').value=b.dataset.v;sort=['late','critical','old'].includes(b.dataset.v)?{k:'retard',d:-1}:{k:'Date_Cde',d:-1};page=0;render()});
+document.querySelectorAll('.chips button').forEach(b=>b.onclick=()=>{$('#fV').value=b.dataset.v;sort=['late','critical','old','relance'].includes(b.dataset.v)?{k:'retard',d:-1}:{k:'Date_Cde',d:-1};page=0;render()});
 $('#bTh').onclick=()=>{const r=document.documentElement,d=getComputedStyle(r).colorScheme==='dark';r.dataset.theme=d?'light':'dark'};
 
 const workspace = $('#sigmaWorkspace');
