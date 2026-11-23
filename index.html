@@ -116,6 +116,30 @@ header{padding:14px 28px}header h1{font-size:20px}
   text-align: left;
 }
 #mobileTrackingAction { color: var(--ac); font-weight: 650 }
+[data-sigma-view="mobile"] .mobile-command-center { display: block; margin: 10px 0 14px; padding: 16px; color: #fff; border-radius: 18px; background: linear-gradient(135deg,#172b3c 0%,#24485a 58%,#a3540c 150%); box-shadow: 0 9px 24px #172b3c24 }
+.mobile-command-center { display: none }
+.mobile-command-head { display:flex; align-items:flex-start; justify-content:space-between; gap:12px }
+.mobile-command-center h2 { margin:0 0 4px; font-size:19px; letter-spacing:-.2px }
+.mobile-command-center p { margin:0; color:#dbe4ea; font-size:12px }
+.mobile-command-badge { flex:0 0 auto; border:1px solid #ffffff40; border-radius:999px; padding:5px 9px; color:#fff4dc; font-size:11px; font-weight:700 }
+.mobile-risk-track { height:7px; margin:14px 0 12px; overflow:hidden; background:#ffffff2b; border-radius:99px }
+.mobile-risk-track span { display:block; height:100%; width:0; background:linear-gradient(90deg,#f4bd4a,#e46c48); border-radius:inherit; transition:width .2s ease }
+.mobile-priority-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px }
+.mobile-priority { display:flex; align-items:center; justify-content:space-between; gap:8px; min-height:62px; padding:10px 11px; text-align:left; color:#fff; background:#ffffff12; border:1px solid #ffffff2b; border-radius:12px }
+.mobile-priority:hover,.mobile-priority:focus-visible { background:#ffffff20; border-color:#f4bd4a }
+.mobile-priority[aria-pressed="true"] { background:#f4bd4a22; border-color:#f4bd4a }
+.mobile-priority span { display:block; color:#e7edf1; font-size:11px; line-height:1.3 }
+.mobile-priority b { display:block; margin-top:3px; color:#fff; font-size:20px; line-height:1 }
+.mobile-priority em { display:grid; place-items:center; flex:0 0 30px; width:30px; height:30px; border-radius:10px; background:#ffffff18; font-style:normal; font-size:16px }
+.mobile-priority[data-view="late"] em,.mobile-priority[data-view="relance"] em { color:#ff9585 }
+.mobile-priority[data-view="critical"] em { color:#ffc65d }
+.mobile-priority[data-view="soon"] em { color:#91d7ff }
+[data-sigma-view="mobile"] .active-filter-bar { padding:8px 0 }
+[data-sigma-view="mobile"] .saved-views summary { padding:11px 2px; font-weight:700 }
+[data-sigma-view="mobile"] .saved-view-row { display:grid; grid-template-columns:1fr 1fr; gap:7px }
+[data-sigma-view="mobile"] .saved-view-row select,[data-sigma-view="mobile"] .saved-view-row input { grid-column:1 / -1; width:100%; max-width:none }
+[data-sigma-view="mobile"] .saved-view-row button { width:100% }
+[data-sigma-view="mobile"] #detailHeading { margin-top:22px }
 [data-sigma-view="mobile"] #trackingPanel h2 { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%) }
 [data-sigma-view="mobile"] .mobile-detail-options { display: block; margin: 0 0 10px }
 .mobile-layout-buttons { display: inline-flex; gap: 4px; padding: 3px; background: var(--card); border: 1px solid var(--bd); border-radius: 10px }
@@ -226,6 +250,19 @@ header{padding:14px 28px}header h1{font-size:20px}
       <label><input id="showTracking" type="checkbox" aria-controls="trackingPanel" checked> Indicateurs de suivi</label>
       <label><input id="showPurchases" type="checkbox" aria-controls="purchasesPanel" checked> Analyse des achats</label>
     </fieldset>
+    <section id="mobileCommandCenter" class="mobile-command-center" aria-labelledby="mobileCommandTitle">
+      <div class="mobile-command-head">
+        <div><h2 id="mobileCommandTitle">Vos priorités SIGMA</h2><p id="mobileCommandSummary">Retards, stock et prochaines échéances</p></div>
+        <span class="mobile-command-badge">MANAGEMENT VISUEL</span>
+      </div>
+      <div class="mobile-risk-track" role="img" aria-label="Part des lignes en retard"><span id="mobileRiskFill"></span></div>
+      <div class="mobile-priority-grid" role="group" aria-label="Accès rapide aux priorités">
+        <button class="mobile-priority" type="button" data-view="late" aria-pressed="false"><span>En retard<b id="mobileLateCount">—</b></span><em aria-hidden="true">!</em></button>
+        <button class="mobile-priority" type="button" data-view="critical" aria-pressed="false"><span>Retard · stock nul<b id="mobileCriticalCount">—</b></span><em aria-hidden="true">◉</em></button>
+        <button class="mobile-priority" type="button" data-view="soon" aria-pressed="false"><span>Échéance sous 7 j<b id="mobileSoonCount">—</b></span><em aria-hidden="true">◷</em></button>
+        <button class="mobile-priority" type="button" data-view="relance" aria-pressed="false"><span>À relancer<b id="mobileRelanceCount">—</b></span><em aria-hidden="true">↗</em></button>
+      </div>
+    </section>
     <button id="mobileTrackingToggle" class="mobile-only" type="button" aria-controls="trackingPanel" aria-expanded="true">
       <strong>Indicateurs de suivi</strong><span id="mobileTrackingAction">Masquer</span>
     </button>
@@ -484,6 +521,13 @@ function render(){
     ['Sans commande',fn(m.noOrder),'Lignes de DA sans numéro de commande']
   ];
   $('#scope').textContent=fn(view.length)+' lignes retenues sur '+fn(rows.length)+' · Retards calculés au '+fd(today);
+  $('#mobileLateCount').textContent=fn(m.late);
+  $('#mobileCriticalCount').textContent=fn(m.critical);
+  $('#mobileSoonCount').textContent=fn(m.soon);
+  $('#mobileRelanceCount').textContent=fn(view.filter(VIEWS.relance).length);
+  $('#mobileCommandSummary').textContent=fn(view.length)+' lignes dans la sélection · '+fn(m.late)+' en retard · '+fn(m.soon)+' échéances proches';
+  $('#mobileRiskFill').style.width=(m.open?Math.min(100,m.late/m.open*100):0)+'%';
+  document.querySelectorAll('.mobile-priority').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.view===$('#fV').value)));
   $('#kpis').innerHTML=kpis.map(([label,value,detail,tone],index)=>'<div class="k '+(tone??'')+([2,3,4,6].includes(index)?' mobile-kpi':'')+'"><span>'+escHtml(label)+'</span><b>'+escHtml(value)+'</b><small>'+escHtml(detail)+'</small></div>').join('');
   renderBars('#c1',['1–30 j','31–90 j','91–180 j','Plus de 180 j'].map((label,i)=>[label,m.ageing[i]]));
   const top=groups=>[...groups].sort((a,b)=>b[1]-a[1]).slice(0,5);
@@ -646,6 +690,13 @@ try{const s=localStorage.getItem('logo');if(s)sl(s)}catch(_){}
 $('#bLogo').onclick=()=>$('#fLogo').click();
 $('#fLogo').onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{sl(r.result);try{localStorage.setItem('logo',r.result)}catch(_){}};r.readAsDataURL(f)};
 document.querySelectorAll('.chips button').forEach(b=>b.onclick=()=>{$('#fV').value=b.dataset.v;sort=['late','critical','old','relance'].includes(b.dataset.v)?{k:'retard',d:-1}:{k:'Date_Cde',d:-1};page=0;render()});
+document.querySelectorAll('.mobile-priority').forEach(button=>button.onclick=()=>{
+  const viewName=button.dataset.view;
+  $('#fV').value=$('#fV').value===viewName?'':viewName;
+  sort=['late','critical','relance'].includes(viewName)?{k:'retard',d:-1}:{k:'Date_promesse',d:1};
+  page=0;render();
+  $('#detailHeading').scrollIntoView({behavior:'smooth',block:'start'});
+});
 $('#bTh').onclick=()=>{const r=document.documentElement,d=getComputedStyle(r).colorScheme==='dark';r.dataset.theme=d?'light':'dark'};
 
 const workspace = $('#sigmaWorkspace');
