@@ -1,4 +1,4 @@
-const CACHE='sigma-v3';
+const CACHE='sigma-v4';
 const CDN='https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
 const CORE=['./','./index.html','./data.enc','./manifest.webmanifest','./icon-180.png','./icon-192.png','./icon-512.png',CDN];
 self.addEventListener('install',e=>{
@@ -6,7 +6,7 @@ self.addEventListener('install',e=>{
     (u.startsWith('http')?fetch(u,{mode:'no-cors'}):fetch(u,{cache:'reload'})).then(r=>c.put(u,r)).catch(()=>{})))).then(()=>self.skipWaiting()));
 });
 self.addEventListener('activate',e=>{
-  e.waitUntil(caches.keys().then(k=>Promise.all(k.filter(x=>x!==CACHE).map(x=>caches.delete(x)))).then(()=>self.clients.claim()));
+  e.waitUntil(caches.keys().then(k=>Promise.all(k.filter(x=>x.startsWith('sigma-')&&x!==CACHE).map(x=>caches.delete(x)))).then(()=>self.clients.claim()));
 });
 async function netFirst(req){
   const cache=await caches.open(CACHE);
