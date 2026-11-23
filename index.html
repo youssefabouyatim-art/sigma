@@ -139,6 +139,15 @@ header{padding:14px 28px}header h1{font-size:20px}
 [data-sigma-view="mobile"] .search-pair { flex-basis: 100% }
 [data-sigma-view="mobile"] .search-row { grid-template-columns: minmax(0, 1fr) }
 [data-sigma-view="mobile"] .search-row input { font-size: 16px }
+
+.active-filter-bar, .saved-views { flex: 1 1 100%; min-width: 0 }
+.active-filter-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 4px 0 }
+#activeFilterList, .saved-view-row { display: flex; flex-wrap: wrap; gap: 6px; min-width: 0 }
+#activeFilterList button { max-width: 100%; overflow-wrap: anywhere; text-align: left; background: var(--card); border-color: var(--ac); border-radius: 14px }
+.saved-views { background: var(--card); border: 1px solid var(--bd); border-radius: 8px; padding: 0 10px }
+.saved-view-row { margin: 6px 0 }
+.saved-view-row input, .saved-view-row select { min-width: 0; max-width: 100% }
+#savedViewStatus:empty { display: none }
 </style>
 </head>
 <body>
@@ -191,6 +200,23 @@ header{padding:14px 28px}header h1{font-size:20px}
         <option value="N_Cde" data-placeholder="Rechercher par numéro de commande">N° de commande</option>
         <option value="Fournisseur" data-placeholder="Rechercher par fournisseur">Fournisseur</option>
       </select><input id="q2" aria-label="Deuxième texte à rechercher" placeholder="Rechercher (DA, article, fournisseur, N° commande…)"></div></div><input id="fNum" placeholder="Num (ex. 1, 2)" style="flex:none;min-width:0;width:130px">
+      <div class="active-filter-bar">
+        <strong id="activeFilterCount" aria-live="polite"></strong>
+        <div id="activeFilterList" aria-label="Filtres actifs"></div>
+      </div>
+      <details class="saved-views">
+        <summary>Mes vues</summary>
+        <div class="saved-view-row">
+          <select id="savedViewSelect" aria-label="Vue enregistrée"><option value="">Choisir une vue</option></select>
+          <button id="applySavedView" type="button">Appliquer</button>
+          <button id="removeSavedView" type="button">Supprimer la vue</button>
+        </div>
+        <form id="saveViewForm" class="saved-view-row">
+          <input id="savedViewName" aria-label="Nom de la nouvelle vue" placeholder="Nom de la nouvelle vue" maxlength="60" required>
+          <button type="submit">Enregistrer les filtres</button>
+        </form>
+        <p id="savedViewStatus" class="sub" role="status"></p>
+      </details>
       <details open class="mf" style="flex:1 1 100%"><summary>Plus de filtres</summary><div class="bar" style="margin:8px 0 0"><select id="fSt"></select><select id="fFo"></select><select id="fCa"></select><select id="fAc"></select><select id="fDe"></select>
       <select id="fV" style="display:none"><option value="">Toutes les vues</option><option value="relance">À relancer</option><option value="favorite">Favoris</option><option value="late">En retard</option><option value="critical">Retard et stock nul</option><option value="old">Retard > 90 j</option><option value="noPromise">Sans date de promesse</option><option value="soon">Échéance sous 7 j</option><option value="rcv">Reçu, pas en stock</option><option value="due">Dû mais déjà en stock</option><option value="nocmd">Sans commande</option></select><input type="date" id="d1" title="Commandé depuis"><input type="date" id="d2" title="Commandé jusqu’au"></div></details>
       <button id="bReset">Réinitialiser</button>
@@ -444,6 +470,7 @@ function render(){
   });
   $('#relanceHint').hidden=$('#fV').value!=='relance';
   view=filt();
+  renderActiveFilters(view.length);
   const m=metrics(view);
   const kpis=[
     ['DA distinctes',fn(m.da),'Demandes d’achat uniques'],
@@ -496,6 +523,107 @@ $('#bReset').onclick=()=>{
     input.value='';field.value='';updateSearchPlaceholder(field,input);
   }
   FILT.forEach(([id])=>$('#'+id).value='');$('#fV').value='';$('#fNum').value='';$('#d1').value='';$('#d2').value='';page=0;render()};
+const savedViewsKey = 'sigma_saved_views';
+const viewFilters = [
+  ['fV','Vue',true], ['fNum','Ligne DA'], ['d1','Depuis'], ['d2','Jusqu’au'],
+  ['fSt','Statut',true], ['fFo','Fournisseur',true], ['fCa','Catégorie',true],
+  ['fAc','Acheteur',true], ['fDe','Devise',true]
+];
+const viewFilterIds = [...searchControls.flat(), ...viewFilters.map(([id])=>id)];
+const savedViewSelect = $('#savedViewSelect');
+const savedViewStatus = $('#savedViewStatus');
+let savedViews = [];
+try {
+  const value = JSON.parse(localStorage.getItem(savedViewsKey) || '[]');
+  if (Array.isArray(value)) savedViews = value.filter(item=>typeof item?.name==='string' && item.fields);
+} catch (_) {}
+
+function updateSavedViewOptions(selected=''){
+  savedViewSelect.replaceChildren(new Option('Choisir une vue',''),
+    ...savedViews.map(item=>new Option(item.name,item.name)));
+  savedViewSelect.value = selected;
+}
+function persistViews(next, selected, message){
+  try {
+    localStorage.setItem(savedViewsKey, JSON.stringify(next));
+  } catch (_) {
+    savedViewStatus.textContent = 'Impossible d’enregistrer les vues dans ce navigateur.';
+    return;
+  }
+  savedViews = next;
+  updateSavedViewOptions(selected);
+  savedViewStatus.textContent = message;
+}
+updateSavedViewOptions();
+$('#saveViewForm').addEventListener('submit', event=>{
+  event.preventDefault();
+  const input = $('#savedViewName');
+  const name = input.value.trim();
+  if (!name || name.length>60) return;
+  if (savedViews.some(item=>item.name.toLowerCase()===name.toLowerCase())){
+    savedViewStatus.textContent = 'Ce nom existe déjà. Choisis un autre nom.';
+    return;
+  }
+  const fields = Object.fromEntries(viewFilterIds.map(id=>[id,$('#'+id).value]));
+  persistViews([...savedViews,{name,fields,sort:{...sort}}],name,'Vue enregistrée dans ce navigateur.');
+  if(savedViews.some(item=>item.name===name)) input.value='';
+});
+$('#applySavedView').onclick = ()=>{
+  const item = savedViews.find(entry=>entry.name===savedViewSelect.value);
+  if (!item) return;
+  let unavailable = false;
+  for (const id of viewFilterIds){
+    const control = $('#'+id);
+    const value = typeof item.fields[id]==='string' ? item.fields[id] : '';
+    control.value = value;
+    if (value && control.value!==value){
+      control.value = '';
+      unavailable = true;
+    }
+  }
+  for (const [field,input] of searchControls) updateSearchPlaceholder($('#'+field),$('#'+input));
+  if (COLS.some(([key])=>key===item.sort?.k)){
+    sort = {k:item.sort.k,d:item.sort.d===1?1:-1};
+  }
+  page=0;
+  render();
+  savedViewStatus.textContent = unavailable
+    ? 'Vue appliquée. Certains filtres ne figurent pas dans cet export.'
+    : 'Vue appliquée.';
+};
+$('#removeSavedView').onclick = ()=>{
+  const name = savedViewSelect.value;
+  if (name) persistViews(savedViews.filter(item=>item.name!==name),'','Vue supprimée.');
+};
+
+function renderActiveFilters(count){
+  const filters = [];
+  for (const [fieldId,inputId] of searchControls){
+    const field = $('#'+fieldId);
+    const value = $('#'+inputId).value.trim();
+    if (value) filters.push([inputId,field.value ? field.selectedOptions[0]?.text : 'Recherche',value]);
+  }
+  for (const [id,label,isSelect] of viewFilters){
+    const control = $('#'+id);
+    if (control.value.trim()) filters.push([id,label,isSelect ? control.selectedOptions[0]?.text || control.value : control.value]);
+  }
+  $('#activeFilterCount').textContent = count.toLocaleString('fr-FR')+(count===1?' résultat':' résultats');
+  $('#activeFilterList').innerHTML = filters.map(([id,label,value])=>{
+    const description = escHtml(label+ ' : '+value);
+    return '<button type="button" data-clear-filter="'+id+'" aria-label="Retirer le filtre '+description+'">'+description+' <span aria-hidden="true">×</span></button>';
+  }).join('');
+}
+$('#activeFilterList').onclick = event=>{
+  const button = event.target.closest('[data-clear-filter]');
+  if (!button) return;
+  const id = button.dataset.clearFilter;
+  $('#'+id).value = '';
+  if (id==='fV') sort = {k:'Date_Cde',d:-1};
+  page=0;
+  render();
+  $('#'+(['q','q2','fNum'].includes(id)?id:'bReset')).focus();
+};
+
 $('#bFile').onclick=$('#drop').onclick=()=>$('#file').click();
 $('#file').onchange=e=>{const file=e.target.files[0];e.target.value='';if(file)load(file)};
 ['dragover','dragleave','drop'].forEach(t=>document.addEventListener(t,e=>{e.preventDefault();$('#drop').classList.toggle('on',t==='dragover');if(t==='drop'&&e.dataTransfer.files[0])load(e.dataTransfer.files[0])}));
