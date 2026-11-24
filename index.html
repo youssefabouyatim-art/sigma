@@ -209,6 +209,23 @@ header{padding:14px 28px}header h1{font-size:20px}
 [data-sigma-view="mobile"] .action-plan-controls button { padding:7px 8px; font-size:12px }
 [data-sigma-view="mobile"] .row-action-fields { grid-template-columns:1fr }
 [data-sigma-view="mobile"] .row-action-fields label.wide { grid-column:auto }
+.import-intel { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; margin:0 0 14px }
+.import-intel>div { display:flex; align-items:flex-start; gap:9px; min-width:0; padding:11px 12px; border:1px solid #e1e6ec; border-radius:11px; background:#fff }
+.import-intel p,.import-intel strong,.import-intel small { display:block; margin:0 }
+.import-intel p { min-width:0 }
+.import-intel strong { color:#2b3948; font-size:12px }
+.import-intel small { margin-top:3px; color:#687487; font-size:11px; line-height:1.4; overflow-wrap:anywhere }
+.intel-mark { display:grid; place-items:center; flex:0 0 28px; width:28px; height:28px; border-radius:9px; font-style:normal; font-weight:800 }
+.intel-mark.fresh { color:#256b8a; background:#e4f3f8 }
+.intel-mark.trend { color:#93600b; background:#fff2d5 }
+.intel-mark.quality { color:#26704a; background:#e3f5eb }
+.chart-click { cursor:pointer; border-radius:5px; transition:background .12s ease }
+.chart-click:hover,.chart-click:focus-visible { outline:2px solid #e1b66a; outline-offset:2px; background:#fff8e9 }
+[data-sigma-view="pc"] #th th[data-k="Des_Article"],[data-sigma-view="pc"] #tb td[data-key="Des_Article"] { width:220px; max-width:220px; padding-right:5px }
+[data-sigma-view="pc"] #tb td[data-key="Des_Article"] { overflow:hidden; text-overflow:ellipsis }
+[data-sigma-view="pc"] #th th[data-k="Desc_Categorie"],[data-sigma-view="pc"] #tb td[data-key="Desc_Categorie"] { width:160px; max-width:160px }
+[data-sigma-view="mobile"] .import-intel { grid-template-columns:1fr; gap:7px; margin-bottom:10px }
+[data-sigma-view="mobile"] .import-intel>div { padding:9px 10px }
 [data-sigma-view="mobile"] #trackingPanel h2 { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%) }
 [data-sigma-view="mobile"] .mobile-detail-options { display: block; margin: 0 0 10px }
 .mobile-layout-buttons { display: inline-flex; gap: 4px; padding: 3px; background: var(--card); border: 1px solid var(--bd); border-radius: 10px }
@@ -294,6 +311,11 @@ header{padding:14px 28px}header h1{font-size:20px}
       <div class="action-plan-heading"><span class="action-plan-icon" aria-hidden="true">✓</span><div><strong>Plan d’action équipe</strong><small id="actionPlanSummary">Aucune action enregistrée</small></div></div>
       <div class="action-plan-controls"><button id="exportActionPlan" type="button">Exporter le plan</button><button id="importActionPlan" type="button">Importer un plan</button><input id="actionPlanFile" type="file" accept="application/json,.json" hidden></div>
       <p id="actionPlanMessage" role="status" aria-live="polite"></p>
+    </section>
+    <section class="import-intel" aria-label="État et qualité des données">
+      <div><span class="intel-mark fresh" aria-hidden="true">↻</span><p><strong>Données chargées</strong><small id="dataFreshness">Aucun fichier chargé pour le moment.</small></p></div>
+      <div><span class="intel-mark trend" aria-hidden="true">↗</span><p><strong>Évolution depuis l’import précédent</strong><small id="importTrend">Charge une extraction pour créer le point de départ.</small></p></div>
+      <div><span class="intel-mark quality" aria-hidden="true">✓</span><p><strong>Contrôle des données</strong><small id="dataQuality">Les champs obligatoires sont vérifiés à l’import.</small></p></div>
     </section>
     <div class="bar">
       <div class="chips" style="flex:1 1 100%"><button data-v="">Toutes</button><button data-v="relance">À relancer</button><button data-v="favorite">Favoris</button><button data-v="late">En retard</button><button data-v="critical">Retard et stock nul</button><button data-v="old">Retard > 90 j</button><button data-v="noPromise">Sans date de promesse</button><button data-v="soon">Échéance sous 7 j</button><button data-v="actionOpen">Actions ouvertes</button><button data-v="rcv">Reçu, pas en stock</button><button data-v="due">Dû mais en stock</button><button data-v="nocmd">Sans commande</button></div><div class="search-pair"><div class="search-row"><select id="searchField" aria-label="Champ de recherche">
@@ -516,6 +538,7 @@ function displayRows(raw,fileName){
     $('#meta').textContent=fileName+' · '+rows.length.toLocaleString('fr-FR')+' lignes';
     $('#drop').classList.add('hide');$('#app').classList.remove('hide');$('#bCsv').classList.remove('hide');$('#bXl').classList.remove('hide');$('#bAll').classList.remove('hide');
     FILT.forEach(([id,k,all])=>{const vals=[...new Set(rows.map(r=>String(r[k]??'')).filter(Boolean))].sort();$('#'+id).replaceChildren(new Option(all,''),...vals.map(v=>new Option(v,v)))});
+    recordImportReview(fileName);
     page=0;render();
 }
 const searchControls=[['searchField','q'],['searchField2','q2']];
@@ -556,9 +579,9 @@ function metrics(data){
   }
   return {da:da.size,orders:orders.size,open,late,critical,noOrder,noPromise,soon,delay,maxDelay,ageing,bySupplier,byBuyer,currency};
 }
-function renderBars(id,items){
+function renderBars(id,items,filterKey){
   const max=Math.max(1,...items.map(([,value])=>value));
-  $(id).innerHTML=items.map(([name,value])=>'<div class="rank"><div><span>'+escHtml(name)+'</span><strong>'+fn(value)+'</strong></div><meter min="0" max="'+max+'" value="'+value+'" aria-label="'+escHtml(name)+'"></meter></div>').join('')||'<p class="sub">Aucune ligne en retard.</p>';
+  $(id).innerHTML=items.map(([name,value])=>{const enabled=Boolean(filterKey)&&name!=='Non renseigné';return '<div class="rank '+(enabled?'chart-click':'')+'" '+(enabled?'role="button" tabindex="0" data-filter-key="'+filterKey+'" data-filter-value="'+escHtml(name)+'" aria-label="Filtrer par '+escHtml(name)+'"':'aria-disabled="true"')+'><div><span>'+escHtml(name)+'</span><strong>'+fn(value)+'</strong></div><meter min="0" max="'+max+'" value="'+value+'" aria-label="'+escHtml(name)+'"></meter></div>'}).join('')||'<p class="sub">Aucune ligne en retard.</p>';
 }
 function purchaseSeries(data, currency){
   const statuses=new Map(), suppliers=new Map(), months=new Map();
@@ -580,11 +603,11 @@ function purchaseSeries(data, currency){
     months:[...months].sort(([a],[b])=>a.localeCompare(b)).slice(-12)
   };
 }
-function renderPurchaseBars(id,items,colorFor=()=> '#4453d1'){
+function renderPurchaseBars(id,items,colorFor=()=> '#4453d1',filterKey=''){
   const max=Math.max(1,...items.map(([,value])=>Math.abs(value)));
   $(id).innerHTML=items.map(([label,value])=>{
-    const name=escHtml(label), width=Math.abs(value)/max*100;
-    return '<div class="purchase-bar"><span class="label" title="'+name+'">'+name+
+    const name=escHtml(label), width=Math.abs(value)/max*100, enabled=Boolean(filterKey)&&label!=='Non renseigné';
+    return '<div class="purchase-bar '+(enabled?'chart-click':'')+'" '+(enabled?'role="button" tabindex="0" data-filter-key="'+filterKey+'" data-filter-value="'+name+'" aria-label="Filtrer par '+name+'"':'aria-disabled="true"')+'><span class="label" title="'+name+'">'+name+
       '</span><span class="track" aria-hidden="true"><span class="fill" style="width:'+width+
       '%;background:'+colorFor(label)+'"></span></span><strong class="value">'+fn(value)+'</strong></div>';
   }).join('')||'<p class="sub">Aucune donnée pour cette sélection.</p>';
@@ -622,16 +645,16 @@ function render(){
   $('#kpis').innerHTML=kpis.map(([label,value,detail,tone],index)=>'<div class="k '+(tone??'')+([2,3,4,6].includes(index)?' mobile-kpi':'')+'"><span>'+escHtml(label)+'</span><b>'+escHtml(value)+'</b><small>'+escHtml(detail)+'</small></div>').join('');
   renderBars('#c1',['1–30 j','31–90 j','91–180 j','Plus de 180 j'].map((label,i)=>[label,m.ageing[i]]));
   const top=groups=>[...groups].sort((a,b)=>b[1]-a[1]).slice(0,5);
-  renderBars('#c2',top(m.bySupplier));
-  renderBars('#c3',top(m.byBuyer));
+  renderBars('#c2',top(m.bySupplier),'fFo');
+  renderBars('#c3',top(m.byBuyer),'fAc');
   const currency=$('#fDe').value||(m.currency.has('USD')?'USD':[...m.currency.keys()].sort()[0])||'';
   const suffix=currency?' ('+currency+')':'';
   const charts=purchaseSeries(view,currency);
   $('#supplierAmountTitle').textContent='Top 10 fournisseurs par montant'+suffix;
   $('#monthlyAmountTitle').textContent='Montant commandé par mois'+suffix;
-  renderPurchaseBars('#supplierAmounts',charts.suppliers);
-  renderPurchaseBars('#statuses',charts.statuses,status=>Object.hasOwn(SC,status)?SC[status]:'#7a8494');
-  renderPurchaseBars('#monthlyAmounts',charts.months);
+  renderPurchaseBars('#supplierAmounts',charts.suppliers,()=> '#4453d1','fFo');
+  renderPurchaseBars('#statuses',charts.statuses,status=>Object.hasOwn(SC,status)?SC[status]:'#7a8494','fSt');
+  renderPurchaseBars('#monthlyAmounts',charts.months,()=> '#4453d1','month');
 
   $('#amounts').innerHTML=[...m.currency].sort(([a],[b])=>String(a).localeCompare(String(b))).map(([name,value])=>'<span><b>'+escHtml(name)+'</b> '+fn(value)+'</span>').join('')||'<p class="sub">Aucun montant disponible.</p>';
   view.forEach(r=>r.Plan_action=actionPlan[r._id]?.status||'Aucune action');
@@ -829,7 +852,56 @@ function saveRowAction(row){
   updateActionPlanSummary();render();
 }
 
-$('#bFile').onclick=$('#drop').onclick=()=>$('#file').click();
+const importHistoryKey='sigma_import_history_v1';
+function recordImportReview(fileName){
+  const m=metrics(rows),now=new Date();
+  const snapshot={loadedAt:now.toISOString(),fileName:String(fileName||'Classeur SIGMA'),lineCount:rows.length,open:m.open,late:m.late,critical:m.critical};
+  $('#dataFreshness').textContent=snapshot.fileName+' · '+fn(rows.length)+' lignes · chargé le '+now.toLocaleString('fr-FR',{dateStyle:'short',timeStyle:'short'});
+  const quality={
+    emptyStatus:rows.filter(r=>!String(r.Status??'').trim()).length,
+    emptySupplier:rows.filter(r=>hasOrder(r)&&!String(r.Fournisseur??'').trim()).length,
+    duplicateLines:0
+  };
+  const seen=new Set();
+  for(const row of rows){if(seen.has(row._id))quality.duplicateLines++;else seen.add(row._id)}
+  const issues=quality.emptyStatus+quality.emptySupplier+quality.duplicateLines;
+  $('#dataQuality').textContent=issues
+    ? 'À vérifier : '+fn(quality.emptyStatus)+' statut(s) vide(s) · '+fn(quality.emptySupplier)+' fournisseur(s) manquant(s) · '+fn(quality.duplicateLines)+' doublon(s) DA/ligne.'
+    : 'Aucun statut ou fournisseur manquant, ni doublon DA/ligne détecté.';
+  let history={latest:null,previous:null};
+  try{const saved=JSON.parse(localStorage.getItem(importHistoryKey)||'null');if(saved&&typeof saved==='object')history=saved}catch(_){}
+  const old=history.latest;
+  if(old){
+    const delta=(current,prior)=>{const n=current-prior;return n>0?'+'+fn(n):n<0?'−'+fn(Math.abs(n)):'0'};
+    $('#importTrend').textContent='Depuis '+(old.fileName||'le dernier import')+' : lignes à livrer '+delta(snapshot.open,old.open)+' · retards '+delta(snapshot.late,old.late)+' · retard et stock nul '+delta(snapshot.critical,old.critical)+'.';
+  }else $('#importTrend').textContent='Point de départ enregistré. Charge une nouvelle extraction pour voir les écarts.';
+  try{localStorage.setItem(importHistoryKey,JSON.stringify({previous:old,latest:snapshot}))}catch(_){}
+}
+function applyChartFilter(key,value){
+  if(key==='month'){
+    const match=/^(\d{4})-(\d{2})$/.exec(String(value));if(!match)return;
+    const year=Number(match[1]),month=Number(match[2]);
+    const last=new Date(year,month,0).getDate();
+    $('#d1').value=year+'-'+match[2]+'-01';$('#d2').value=year+'-'+match[2]+'-'+String(last).padStart(2,'0');
+  }else{
+    const control=$('#'+key);if(!control)return;
+    if([...control.options].some(option=>option.value===String(value)))control.value=String(value);else return;
+  }
+  page=0;render();$('#detailHeading').scrollIntoView({behavior:'smooth',block:'start'});
+}
+for(const container of [$('#trackingPanel'),$('#purchasesPanel')]){
+  container.addEventListener('click',event=>{
+    const chart=event.target.closest('.chart-click');
+    if(chart&&!chart.getAttribute('aria-disabled'))applyChartFilter(chart.dataset.filterKey,chart.dataset.filterValue);
+  });
+  container.addEventListener('keydown',event=>{
+    if((event.key==='Enter'||event.key===' ')&&event.target.matches('.chart-click')){
+      event.preventDefault();if(!event.target.getAttribute('aria-disabled'))applyChartFilter(event.target.dataset.filterKey,event.target.dataset.filterValue);
+    }
+  });
+}
+
+$('#bFile').onclick=$('#drop').onclick=()=>$('#file').click();'#drop').onclick=()=>$('#file').click();
 $('#file').onchange=e=>{const file=e.target.files[0];e.target.value='';if(file)load(file)};
 ['dragover','dragleave','drop'].forEach(t=>document.addEventListener(t,e=>{e.preventDefault();$('#drop').classList.toggle('on',t==='dragover');if(t==='drop'&&e.dataTransfer.files[0])load(e.dataTransfer.files[0])}));
 $('#bCsv').onclick=()=>{const esc=v=>'"'+String(v instanceof Date?fd(v):v??'').replace(/"/g,'""')+'"';

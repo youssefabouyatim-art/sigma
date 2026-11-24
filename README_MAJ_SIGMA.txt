@@ -1,15 +1,18 @@
 SIGMA — Mise à jour PC et téléphone
 
 Contenu à publier à la racine du dépôt GitHub Pages :
-- index.html : application PC et téléphone, filtres, vues enregistrées, tableau de bord et plan d’action
+- index.html : application PC et téléphone, filtres, vues enregistrées, tableau de bord et suivi d’actions
 - data.enc : données SIGMA chiffrées utilisées par l’application
 - sw.js : cache hors ligne, version renouvelée
 - manifest.webmanifest et icône-*.png : installation sur téléphone
 
-Utilisation du plan d’action en équipe :
-1. Ouvrir une ligne DA, saisir l’action, le responsable, l’échéance et le statut, puis enregistrer.
-2. Cliquer sur « Exporter le plan » et déposer le fichier SIGMA_plan_action.json dans le dossier partagé.
-3. Sur un autre appareil, cliquer sur « Importer un plan » et choisir ce fichier.
-4. Après modification, exporter de nouveau le plan actualisé pour le partager.
+Nouveautés :
+- Comparaison des retards, lignes à livrer et retards avec stock nul par rapport au dernier fichier importé dans ce navigateur.
+- Contrôle rapide des statuts vides, fournisseurs manquants et doublons DA/ligne.
+- Cliquer sur un fournisseur, acheteur, statut ou mois d’un graphique pour filtrer le tableau.
+- Colonne « Désignation » resserrée pour réduire l’espace avant « Catégorie ».
+- Plan d’action exportable/importable au format JSON.
 
-Les actions sont enregistrées dans le navigateur et dans le fichier JSON exporté. Elles ne sont pas synchronisées en direct. Pour publier l’application, décompresser l’archive, téléverser les fichiers à la racine du dépôt GitHub Pages et valider les changements. Conserver ces fichiers ensemble. Après publication, ouvrir le lien SIGMA puis actualiser la page sur les appareils.
+Partage du plan d’action : enregistrer l’action depuis le détail d’une ligne, exporter SIGMA_plan_action.json, déposer le fichier dans le dossier partagé, puis l’importer sur l’autre appareil. La synchronisation n’est pas en direct. La comparaison d’extractions et le contrôle qualité sont conservés dans le navigateur de chaque appareil.
+
+Publication : décompresser l’archive, téléverser les fichiers à la racine du dépôt GitHub Pages et valider les changements. Conserver ces fichiers ensemble. Après publication, ouvrir le lien SIGMA puis actualiser la page sur les appareils.
