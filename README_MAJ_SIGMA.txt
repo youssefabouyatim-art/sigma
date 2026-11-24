@@ -20,3 +20,5 @@ Publication : décompresser l’archive, téléverser les fichiers à la racine 
 Nouvelle fonction : redimensionner les colonnes du tableau PC en faisant glisser le bord droit de l’en-tête. Les largeurs restent mémorisées sur le navigateur utilisé. Le bouton « Réinitialiser les largeurs » restaure les dimensions initiales.
 
 Correction : démarrage JavaScript réparé pour que le formulaire de déverrouillage fonctionne.
+
+Mise à jour téléphone : les deux recherches et le filtre Num sont placés sous « Détail des DA et commandes ». La barre « Filtres et indicateurs » affiche ou masque le contenu supérieur. La version PC conserve son organisation habituelle.
