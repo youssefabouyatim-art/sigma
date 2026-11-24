@@ -36,6 +36,7 @@ button{cursor:pointer}button.p{background:var(--ac);color:#fff;border-color:var(
 .row .n{width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.row .v{color:var(--mut)}
 .tw{overflow-x:auto;background:var(--card);border:1px solid var(--bd);border-radius:12px}
 table{border-collapse:collapse;width:100%;font-size:12.5px}th,td{padding:7px 9px;border-bottom:1px solid var(--bd);text-align:left;white-space:nowrap;max-width:260px;overflow:hidden;text-overflow:ellipsis}
+table{min-width:100%}#detailsTable{table-layout:auto}#detailsTable.has-custom-widths{table-layout:fixed;width:max-content;min-width:100%}#detailsTable.has-custom-widths th,#detailsTable.has-custom-widths td{max-width:none;overflow:hidden;text-overflow:ellipsis}#detailsTable th{position:relative}.col-resize-grip{position:absolute;top:0;right:-1px;width:9px;height:100%;cursor:col-resize;touch-action:none;z-index:4}.col-resize-grip:after{content:"";position:absolute;top:22%;bottom:22%;left:4px;width:2px;border-radius:2px;background:transparent}.col-resize-grip:hover:after,.col-resize-grip.dragging:after{background:#a3540c}.table-width-tools{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0 0 7px;color:var(--mut);font-size:12px}.table-width-tools button{font-size:12px;padding:5px 9px}.table-width-tools button:disabled{opacity:.5}
 th{position:sticky;top:0;background:var(--card);cursor:pointer;user-select:none}td.r,th.r{text-align:right}
 .late{color:var(--ko);font-weight:600}.tag{padding:2px 7px;border-radius:99px;border:1px solid var(--bd);font-size:11px}
 .pg{display:flex;gap:8px;align-items:center;justify-content:space-between;margin-top:10px;color:var(--mut)}
@@ -224,6 +225,7 @@ header{padding:14px 28px}header h1{font-size:20px}
 [data-sigma-view="pc"] #th th[data-k="Des_Article"],[data-sigma-view="pc"] #tb td[data-key="Des_Article"] { width:220px; max-width:220px; padding-right:5px }
 [data-sigma-view="pc"] #tb td[data-key="Des_Article"] { overflow:hidden; text-overflow:ellipsis }
 [data-sigma-view="pc"] #th th[data-k="Desc_Categorie"],[data-sigma-view="pc"] #tb td[data-key="Desc_Categorie"] { width:160px; max-width:160px }
+[data-sigma-view="pc"] #detailsTable.has-custom-widths th,[data-sigma-view="pc"] #detailsTable.has-custom-widths td { width:auto; max-width:none }
 [data-sigma-view="mobile"] .import-intel { grid-template-columns:1fr; gap:7px; margin-bottom:10px }
 [data-sigma-view="mobile"] .import-intel>div { padding:9px 10px }
 [data-sigma-view="mobile"] #trackingPanel h2 { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%) }
@@ -405,7 +407,8 @@ header{padding:14px 28px}header h1{font-size:20px}
     </div>
     <p id="relanceHint" class="sub" hidden>Commandes en retard avec stock à zéro, classées par retard décroissant par défaut.</p>
     <div class="lg"><span><i style="background:#d33"></i>En retard</span><span><i style="background:#e08a00"></i>Commande avec reste dû</span><span><i style="background:#1a8a4a"></i>Entièrement reçu</span><span>Retard : <b style="color:#e6b800">≤ 30 j</b> · <b style="color:#e08a00">31–90 j</b> · <b style="color:#d33">&gt; 90 j</b></span></div>
-    <div class="tw" id="detailsResults"><table><thead id="th"></thead><tbody id="tb"></tbody></table></div>
+    <div class="table-width-tools"><span>Pour ajuster une colonne, fais glisser son bord droit.</span><button id="resetColumnWidths" type="button">Réinitialiser les largeurs</button></div>
+    <div class="tw" id="detailsResults"><table id="detailsTable"><colgroup id="detailsCols"></colgroup><thead id="th"></thead><tbody id="tb"></tbody></table></div>
     <div class="pg"><span id="cnt"></span><label>Lignes par page <select id="pageSize"><option>25</option><option selected>50</option><option>100</option></select></label><span><button id="pv">←</button> <span id="pn"></span> <button id="nx">→</button></span></div>
   </div>
 </main>
@@ -501,6 +504,32 @@ const VIEWS={
 };
 const searchText=row=>Object.entries(row).filter(([k,v])=>!k.startsWith('_')&&['string','number'].includes(typeof v)).map(([,v])=>v).join(' ').toLowerCase();
 const COLS=[['DA','DA'],['Status','Statut'],['Plan_action','Plan d’action'],['Date_Creation','Création','d'],['Article','Code article'],['Des_Article','Désignation'],['Desc_Categorie','Catégorie'],['Quantite','Qté dem.','n'],['N_Cde','N° Cde'],['Fournisseur','Fournisseur'],['Date_Cde','Date Cde','d'],['Mnt','Montant','n'],['Devise','Devise'],['Qte_Rec','Reçu','n'],['Qte_Due','Dû','n'],['Qte_Mise_Disposition','En stock','n'],['Date_promesse','Promise','d'],['retard','Retard (j)','n'],['Date_Livraisons','Livraison','d'],['Acheteur_Cde','Acheteur'],['Num','Ligne DA'],['Ste','Site'],['UO','Unité'],['N_appel_Cde','Appel commande'],['Date_promesse_Initiale','Promesse initiale','d'],['date_prévue_livraison_site','Livraison prévue site','d']];
+const columnWidthsKey='sigma_table_column_widths_v1';
+let columnWidths=[];
+try{const saved=JSON.parse(localStorage.getItem(columnWidthsKey)||'null');if(Array.isArray(saved)&&saved.length===COLS.length)columnWidths=saved.map(n=>Number.isFinite(Number(n))?Math.max(55,Math.min(900,Number(n))):null)}catch(_){}
+function applyColumnWidths(){
+  const table=$('#detailsTable'),group=$('#detailsCols');
+  if(!table||!group)return;
+  group.innerHTML=COLS.map((_,i)=>'<col'+(columnWidths[i]?' style="width:'+columnWidths[i]+'px"':'')+'>').join('');
+  table.classList.toggle('has-custom-widths',columnWidths.some(Boolean));
+  $('#resetColumnWidths').disabled=!columnWidths.some(Boolean);
+}
+function bindColumnResizers(){
+  document.querySelectorAll('#th th').forEach((th,index)=>{
+    const grip=document.createElement('span');grip.className='col-resize-grip';grip.title='Faire glisser pour modifier la largeur';grip.setAttribute('aria-label','Modifier la largeur de la colonne '+(COLS[index]?.[1]||''));th.appendChild(grip);
+  });
+}
+$('#th').addEventListener('pointerdown',event=>{
+  const grip=event.target.closest('.col-resize-grip');if(!grip)return;
+  event.preventDefault();event.stopPropagation();
+  const th=grip.parentElement,index=[...th.parentElement.children].indexOf(th),startX=event.clientX;
+  if(!columnWidths.some(Boolean))columnWidths=[...document.querySelectorAll('#th th')].map(cell=>Math.round(cell.getBoundingClientRect().width));
+  const startWidth=columnWidths[index]||Math.round(th.getBoundingClientRect().width);grip.classList.add('dragging');
+  const move=e=>{columnWidths[index]=Math.max(60,Math.min(900,Math.round(startWidth+e.clientX-startX)));applyColumnWidths()};
+  const up=()=>{grip.classList.remove('dragging');window.removeEventListener('pointermove',move);window.removeEventListener('pointerup',up);try{localStorage.setItem(columnWidthsKey,JSON.stringify(columnWidths))}catch(_){} };
+  window.addEventListener('pointermove',move);window.addEventListener('pointerup',up,{once:true});
+});
+$('#resetColumnWidths').onclick=()=>{columnWidths=[];try{localStorage.removeItem(columnWidthsKey)}catch(_){}applyColumnWidths()};
 const mobileColumns=new Set(['DA','Status','Article','N_Cde','Des_Article','Qte_Due','Qte_Mise_Disposition','Date_promesse','retard','Acheteur_Cde','Plan_action']);
 const EDIT=['Article','Des_Article','Desc_Categorie','Fournisseur','Description_DA','Justification'];
 const SC={APPROVED:'#1a8a4a',RETURNED:'#e08a00','IN PROCESS':'#2f6fe0',REJECTED:'#d33',INCOMPLETE:'#7a8494',SYSTEM_SAV:'#8a4fd0'};
@@ -663,9 +692,10 @@ function render(){
   $('#th').innerHTML='<tr>'+COLS.map(c=>'<th data-k="'+c[0]+'" class="'+(c[2]==='n'?'r':'')+'">'+c[1]+(sort.k===c[0]?(sort.d>0?' ▲':' ▼'):'')+'</th>').join('')+'</tr>';
   $('#tb').innerHTML=view.slice(page*PS,page*PS+PS).map((r,i)=>'<tr class="'+(r.late?'r-late':outstanding(r)?'r-wa':r.Qte_Rec>0&&r.Qte_Due<=0?'r-ok':'')+'" data-i="'+(page*PS+i)+'">'+COLS.map(c=>{let v=r[c[0]];v=c[2]==='d'?escHtml(fd(v)||v):c[2]==='n'?(c[0]==='retard'&&!v?'':fn(v)):escHtml(v);if(c[0]==='Plan_action')v='<span class="action-pill '+(r.Plan_action==='Terminé'?'done':r.Plan_action==='Aucune action'?'none':'open')+'">'+escHtml(r.Plan_action)+'</span>';if(c[0]==='DA'&&favorites.has(r._id))v+=' <span class="favorite-star" title="Favori">★</span>';if(c[0]==='DA'&&gn(r))v+=' <span class="nt" title="Note">✎</span>';if(c[0]==='Article'&&r._e)v+=' <span class="nt" title="Modifié">●</span>';if(c[0]==='retard'&&v)v='<span class="tag '+(r.retard>90?'g3':r.retard>30?'g2':'g1')+'">'+v+'</span>';
     const cls=(c[2]==='n'?'r ':'')+((c[0]==='Date_promesse'||c[0]==='retard')&&r.late?'late':'')+(c[0]==='Qte_Due'&&r.Qte_Due>0?' wa':'')+((c[0]==='Qte_Mise_Disposition'||c[0]==='Qte_Rec')&&r[c[0]]>0?' ok':'');return '<td class="'+cls+(mobileColumns.has(c[0])?' mobile-cell':'')+'" data-key="'+c[0]+'" data-l="'+c[1]+'" title="'+String(v).replace(/<[^>]*>/g,'').replace(/"/g,'&quot;')+'">'+(c[0]==='Status'&&v?'<span class="tag s-'+escHtml(String(r[c[0]]).replace(/ /g,'_'))+'">'+v+'</span>':v)+'</td>'}).join('')+'</tr>').join('');
+  applyColumnWidths();bindColumnResizers();
   $('#cnt').textContent=view.length.toLocaleString('fr-FR')+' résultat(s)';$('#pn').textContent='Page '+(page+1)+' / '+pages;$('#pv').disabled=page===0;$('#nx').disabled=page>=pages-1;
 }
-$('#th').onclick=e=>{const k=e.target.closest('th')?.dataset.k;if(!k)return;sort={k,d:sort.k===k?-sort.d:1};render()};
+$('#th').onclick=e=>{if(e.target.closest('.col-resize-grip'))return;const k=e.target.closest('th')?.dataset.k;if(!k)return;sort={k,d:sort.k===k?-sort.d:1};render()};
 $('#pageSize').onchange=e=>{PS=Number(e.target.value);page=0;render()};
 $('#pv').onclick=()=>{if(page>0){page--;render()}};$('#nx').onclick=()=>{page++;render()};
 ['q','q2','fNum','fSt','fFo','fCa','fAc','fDe','fV','d1','d2'].forEach(id=>$('#'+id).addEventListener('input',()=>{page=0;render()}));
