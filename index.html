@@ -177,6 +177,38 @@ header{padding:14px 28px}header h1{font-size:20px}
 [data-sigma-view="pc"] #tb tr:hover { background:#fff7e9 }
 [data-sigma-view="pc"] .display-options { border-radius:12px; background:#fff }
 @media(max-width:1000px){[data-sigma-view="pc"] .pc-welcome{align-items:flex-start;flex-direction:column}[data-sigma-view="pc"] .pc-visual-key{width:100%;flex-basis:auto}}
+.action-plan-toolbar { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:12px; margin:0 0 12px; padding:12px 15px; border:1px solid #dfe5eb; border-left:4px solid #a3540c; border-radius:12px; background:linear-gradient(100deg,#fff 0%,#fffaf2 100%); box-shadow:0 3px 12px #182c3a08 }
+.action-plan-heading { display:flex; align-items:center; gap:10px; min-width:200px }
+.action-plan-heading strong,.action-plan-heading small { display:block }
+.action-plan-heading strong { color:#25384a; font-size:14px }
+.action-plan-heading small { margin-top:3px; color:var(--mut); font-size:12px }
+.action-plan-icon { display:grid; place-items:center; width:34px; height:34px; border-radius:10px; color:#a3540c; background:#faeddc; font-size:18px; font-weight:800 }
+.action-plan-controls { display:flex; gap:7px; flex-wrap:wrap }
+.action-plan-controls button,#saveRowAction { min-height:38px; padding:8px 12px; border-radius:8px; font-weight:650 }
+#exportActionPlan,#saveRowAction { color:#fff; border-color:#a3540c; background:#a3540c }
+#actionPlanMessage { flex:1 0 100%; margin:0; color:var(--mut); font-size:12px }
+.row-action-plan { margin:14px 0; padding:15px; border:1px solid #e2e6eb; border-left:4px solid #a3540c; border-radius:12px; background:linear-gradient(120deg,#fffaf3,#fff) }
+.row-action-head { display:flex; justify-content:space-between; align-items:flex-start; gap:10px; margin-bottom:12px }
+.row-action-head h3 { margin:0 0 3px; color:#25384a; font-size:16px }
+.row-action-head p { margin:0; color:var(--mut); font-size:12px }
+.row-action-mark { padding:4px 8px; border-radius:999px; color:#8a4a08; background:#f9e6c9; font-size:10px; font-weight:750; letter-spacing:.5px }
+.row-action-fields { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px }
+.row-action-fields label { display:grid; gap:4px; color:#667085; font-size:12px; font-weight:650 }
+.row-action-fields label.wide { grid-column:1 / -1 }
+.row-action-fields input,.row-action-fields select,.row-action-fields textarea { box-sizing:border-box; width:100%; min-height:39px; padding:8px 10px; border:1px solid #dce2e8; border-radius:8px; background:#fff; color:#202a35; font:inherit; font-size:14px }
+.row-action-fields textarea { resize:vertical }
+.row-action-footer { display:flex; align-items:center; gap:10px; margin-top:12px }
+#rowActionFeedback { color:#237348; font-size:12px }
+.action-pill { display:inline-block; padding:3px 8px; border:1px solid transparent; border-radius:99px; font-size:11px; font-weight:700; white-space:nowrap }
+.action-pill.open { color:#88500a; border-color:#e6a642; background:#fff2d9 }
+.action-pill.done { color:#176b43; border-color:#48a77b; background:#e3f5eb }
+.action-pill.none { color:#687386; border-color:#d7dde5; background:#f2f4f7 }
+[data-sigma-view="mobile"] .action-plan-toolbar { align-items:stretch; margin-top:8px; padding:12px; gap:10px }
+[data-sigma-view="mobile"] .action-plan-heading { min-width:0 }
+[data-sigma-view="mobile"] .action-plan-controls { display:grid; grid-template-columns:1fr 1fr; width:100% }
+[data-sigma-view="mobile"] .action-plan-controls button { padding:7px 8px; font-size:12px }
+[data-sigma-view="mobile"] .row-action-fields { grid-template-columns:1fr }
+[data-sigma-view="mobile"] .row-action-fields label.wide { grid-column:auto }
 [data-sigma-view="mobile"] #trackingPanel h2 { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%) }
 [data-sigma-view="mobile"] .mobile-detail-options { display: block; margin: 0 0 10px }
 .mobile-layout-buttons { display: inline-flex; gap: 4px; padding: 3px; background: var(--card); border: 1px solid var(--bd); border-radius: 10px }
@@ -258,8 +290,13 @@ header{padding:14px 28px}header h1{font-size:20px}
       </div>
     </section>
     
+    <section class="action-plan-toolbar" aria-label="Plan d’action partagé">
+      <div class="action-plan-heading"><span class="action-plan-icon" aria-hidden="true">✓</span><div><strong>Plan d’action équipe</strong><small id="actionPlanSummary">Aucune action enregistrée</small></div></div>
+      <div class="action-plan-controls"><button id="exportActionPlan" type="button">Exporter le plan</button><button id="importActionPlan" type="button">Importer un plan</button><input id="actionPlanFile" type="file" accept="application/json,.json" hidden></div>
+      <p id="actionPlanMessage" role="status" aria-live="polite"></p>
+    </section>
     <div class="bar">
-      <div class="chips" style="flex:1 1 100%"><button data-v="">Toutes</button><button data-v="relance">À relancer</button><button data-v="favorite">Favoris</button><button data-v="late">En retard</button><button data-v="critical">Retard et stock nul</button><button data-v="old">Retard > 90 j</button><button data-v="noPromise">Sans date de promesse</button><button data-v="soon">Échéance sous 7 j</button><button data-v="rcv">Reçu, pas en stock</button><button data-v="due">Dû mais en stock</button><button data-v="nocmd">Sans commande</button></div><div class="search-pair"><div class="search-row"><select id="searchField" aria-label="Champ de recherche">
+      <div class="chips" style="flex:1 1 100%"><button data-v="">Toutes</button><button data-v="relance">À relancer</button><button data-v="favorite">Favoris</button><button data-v="late">En retard</button><button data-v="critical">Retard et stock nul</button><button data-v="old">Retard > 90 j</button><button data-v="noPromise">Sans date de promesse</button><button data-v="soon">Échéance sous 7 j</button><button data-v="actionOpen">Actions ouvertes</button><button data-v="rcv">Reçu, pas en stock</button><button data-v="due">Dû mais en stock</button><button data-v="nocmd">Sans commande</button></div><div class="search-pair"><div class="search-row"><select id="searchField" aria-label="Champ de recherche">
         <option value="" data-placeholder="Rechercher (DA, article, fournisseur, N° commande…)">Tous les champs</option>
         <option value="DA" data-placeholder="Rechercher par numéro de DA">Numéro de DA</option>
         <option value="Article" data-placeholder="Rechercher par code article">Code article</option>
@@ -292,7 +329,7 @@ header{padding:14px 28px}header h1{font-size:20px}
         <p id="savedViewStatus" class="sub" role="status"></p>
       </details>
       <details open class="mf" style="flex:1 1 100%"><summary>Plus de filtres</summary><div class="bar" style="margin:8px 0 0"><select id="fSt"></select><select id="fFo"></select><select id="fCa"></select><select id="fAc"></select><select id="fDe"></select>
-      <select id="fV" style="display:none"><option value="">Toutes les vues</option><option value="relance">À relancer</option><option value="favorite">Favoris</option><option value="late">En retard</option><option value="critical">Retard et stock nul</option><option value="old">Retard > 90 j</option><option value="noPromise">Sans date de promesse</option><option value="soon">Échéance sous 7 j</option><option value="rcv">Reçu, pas en stock</option><option value="due">Dû mais déjà en stock</option><option value="nocmd">Sans commande</option></select><input type="date" id="d1" title="Commandé depuis"><input type="date" id="d2" title="Commandé jusqu’au"></div></details>
+      <select id="fV" style="display:none"><option value="">Toutes les vues</option><option value="relance">À relancer</option><option value="favorite">Favoris</option><option value="late">En retard</option><option value="critical">Retard et stock nul</option><option value="old">Retard > 90 j</option><option value="noPromise">Sans date de promesse</option><option value="soon">Échéance sous 7 j</option><option value="actionOpen">Actions ouvertes</option><option value="rcv">Reçu, pas en stock</option><option value="due">Dû mais déjà en stock</option><option value="nocmd">Sans commande</option></select><input type="date" id="d1" title="Commandé depuis"><input type="date" id="d2" title="Commandé jusqu’au"></div></details>
       <button id="bReset">Réinitialiser</button>
     </div>
     <fieldset class="display-options">
@@ -311,6 +348,7 @@ header{padding:14px 28px}header h1{font-size:20px}
         <button class="mobile-priority" type="button" data-view="critical" aria-pressed="false"><span>Retard · stock nul<b id="mobileCriticalCount">—</b></span><em aria-hidden="true">◉</em></button>
         <button class="mobile-priority" type="button" data-view="soon" aria-pressed="false"><span>Échéance sous 7 j<b id="mobileSoonCount">—</b></span><em aria-hidden="true">◷</em></button>
         <button class="mobile-priority" type="button" data-view="relance" aria-pressed="false"><span>À relancer<b id="mobileRelanceCount">—</b></span><em aria-hidden="true">↗</em></button>
+        <button class="mobile-priority" type="button" data-view="actionOpen" aria-pressed="false"><span>Actions ouvertes<b id="mobileActionCount">—</b></span><em aria-hidden="true">✓</em></button>
       </div>
     </section>
     <button id="mobileTrackingToggle" class="mobile-only" type="button" aria-controls="trackingPanel" aria-expanded="true">
@@ -435,12 +473,13 @@ const VIEWS={
  relance:r=>r.late&&r._stockZero,favorite:r=>favorites.has(r._id),
  late:r=>r.late,critical:r=>r.late&&r.Qte_Mise_Disposition<=0,old:r=>r.retard>90,
  noPromise:r=>outstanding(r)&&!r.Date_promesse,
+ actionOpen:r=>Boolean(actionPlan[r._id]&&actionPlan[r._id].status!=='Terminé'),
  soon:r=>outstanding(r)&&r.Date_promesse instanceof Date&&day(r.Date_promesse)-day(today)>=0&&day(r.Date_promesse)-day(today)<=7,
  rcv:r=>r.Qte_Rec>0&&r.Qte_Mise_Disposition<=0,due:r=>r.Qte_Due>0&&r.Qte_Mise_Disposition>0,nocmd:r=>!hasOrder(r)
 };
 const searchText=row=>Object.entries(row).filter(([k,v])=>!k.startsWith('_')&&['string','number'].includes(typeof v)).map(([,v])=>v).join(' ').toLowerCase();
-const COLS=[['DA','DA'],['Status','Statut'],['Date_Creation','Création','d'],['Article','Code article'],['Des_Article','Désignation'],['Desc_Categorie','Catégorie'],['Quantite','Qté dem.','n'],['N_Cde','N° Cde'],['Fournisseur','Fournisseur'],['Date_Cde','Date Cde','d'],['Mnt','Montant','n'],['Devise','Devise'],['Qte_Rec','Reçu','n'],['Qte_Due','Dû','n'],['Qte_Mise_Disposition','En stock','n'],['Date_promesse','Promise','d'],['retard','Retard (j)','n'],['Date_Livraisons','Livraison','d'],['Acheteur_Cde','Acheteur'],['Num','Ligne DA'],['Ste','Site'],['UO','Unité'],['N_appel_Cde','Appel commande'],['Date_promesse_Initiale','Promesse initiale','d'],['date_prévue_livraison_site','Livraison prévue site','d']];
-const mobileColumns=new Set(['DA','Status','Article','N_Cde','Des_Article','Qte_Due','Qte_Mise_Disposition','Date_promesse','retard','Acheteur_Cde']);
+const COLS=[['DA','DA'],['Status','Statut'],['Plan_action','Plan d’action'],['Date_Creation','Création','d'],['Article','Code article'],['Des_Article','Désignation'],['Desc_Categorie','Catégorie'],['Quantite','Qté dem.','n'],['N_Cde','N° Cde'],['Fournisseur','Fournisseur'],['Date_Cde','Date Cde','d'],['Mnt','Montant','n'],['Devise','Devise'],['Qte_Rec','Reçu','n'],['Qte_Due','Dû','n'],['Qte_Mise_Disposition','En stock','n'],['Date_promesse','Promise','d'],['retard','Retard (j)','n'],['Date_Livraisons','Livraison','d'],['Acheteur_Cde','Acheteur'],['Num','Ligne DA'],['Ste','Site'],['UO','Unité'],['N_appel_Cde','Appel commande'],['Date_promesse_Initiale','Promesse initiale','d'],['date_prévue_livraison_site','Livraison prévue site','d']];
+const mobileColumns=new Set(['DA','Status','Article','N_Cde','Des_Article','Qte_Due','Qte_Mise_Disposition','Date_promesse','retard','Acheteur_Cde','Plan_action']);
 const EDIT=['Article','Des_Article','Desc_Categorie','Fournisseur','Description_DA','Justification'];
 const SC={APPROVED:'#1a8a4a',RETURNED:'#e08a00','IN PROCESS':'#2f6fe0',REJECTED:'#d33',INCOMPLETE:'#7a8494',SYSTEM_SAV:'#8a4fd0'};
 const FILT=[['fSt','Status','Tous les statuts'],['fFo','Fournisseur','Tous les fournisseurs'],['fCa','Desc_Categorie','Toutes les catégories'],['fAc','Acheteur_Cde','Tous les acheteurs'],['fDe','Devise','Toutes les devises']];
@@ -575,6 +614,8 @@ function render(){
   $('#mobileCriticalCount').textContent=fn(m.critical);
   $('#mobileSoonCount').textContent=fn(m.soon);
   $('#mobileRelanceCount').textContent=fn(view.filter(VIEWS.relance).length);
+  $('#mobileActionCount').textContent=fn(view.filter(VIEWS.actionOpen).length);
+  updateActionPlanSummary();
   $('#mobileCommandSummary').textContent=fn(view.length)+' lignes dans la sélection · '+fn(m.late)+' en retard · '+fn(m.soon)+' échéances proches';
   $('#mobileRiskFill').style.width=(m.open?Math.min(100,m.late/m.open*100):0)+'%';
   document.querySelectorAll('.mobile-priority').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.view===$('#fV').value)));
@@ -593,10 +634,11 @@ function render(){
   renderPurchaseBars('#monthlyAmounts',charts.months);
 
   $('#amounts').innerHTML=[...m.currency].sort(([a],[b])=>String(a).localeCompare(String(b))).map(([name,value])=>'<span><b>'+escHtml(name)+'</b> '+fn(value)+'</span>').join('')||'<p class="sub">Aucun montant disponible.</p>';
+  view.forEach(r=>r.Plan_action=actionPlan[r._id]?.status||'Aucune action');
   const {k,d}=sort;view.sort((a,b)=>{const x=a[k],y=b[k];return (x>y?1:x<y?-1:0)*d});
   const pages=Math.max(1,Math.ceil(view.length/PS));page=Math.min(page,pages-1);
   $('#th').innerHTML='<tr>'+COLS.map(c=>'<th data-k="'+c[0]+'" class="'+(c[2]==='n'?'r':'')+'">'+c[1]+(sort.k===c[0]?(sort.d>0?' ▲':' ▼'):'')+'</th>').join('')+'</tr>';
-  $('#tb').innerHTML=view.slice(page*PS,page*PS+PS).map((r,i)=>'<tr class="'+(r.late?'r-late':outstanding(r)?'r-wa':r.Qte_Rec>0&&r.Qte_Due<=0?'r-ok':'')+'" data-i="'+(page*PS+i)+'">'+COLS.map(c=>{let v=r[c[0]];v=c[2]==='d'?escHtml(fd(v)||v):c[2]==='n'?(c[0]==='retard'&&!v?'':fn(v)):escHtml(v);if(c[0]==='DA'&&favorites.has(r._id))v+=' <span class="favorite-star" title="Favori">★</span>';if(c[0]==='DA'&&gn(r))v+=' <span class="nt" title="Note">✎</span>';if(c[0]==='Article'&&r._e)v+=' <span class="nt" title="Modifié">●</span>';if(c[0]==='retard'&&v)v='<span class="tag '+(r.retard>90?'g3':r.retard>30?'g2':'g1')+'">'+v+'</span>';
+  $('#tb').innerHTML=view.slice(page*PS,page*PS+PS).map((r,i)=>'<tr class="'+(r.late?'r-late':outstanding(r)?'r-wa':r.Qte_Rec>0&&r.Qte_Due<=0?'r-ok':'')+'" data-i="'+(page*PS+i)+'">'+COLS.map(c=>{let v=r[c[0]];v=c[2]==='d'?escHtml(fd(v)||v):c[2]==='n'?(c[0]==='retard'&&!v?'':fn(v)):escHtml(v);if(c[0]==='Plan_action')v='<span class="action-pill '+(r.Plan_action==='Terminé'?'done':r.Plan_action==='Aucune action'?'none':'open')+'">'+escHtml(r.Plan_action)+'</span>';if(c[0]==='DA'&&favorites.has(r._id))v+=' <span class="favorite-star" title="Favori">★</span>';if(c[0]==='DA'&&gn(r))v+=' <span class="nt" title="Note">✎</span>';if(c[0]==='Article'&&r._e)v+=' <span class="nt" title="Modifié">●</span>';if(c[0]==='retard'&&v)v='<span class="tag '+(r.retard>90?'g3':r.retard>30?'g2':'g1')+'">'+v+'</span>';
     const cls=(c[2]==='n'?'r ':'')+((c[0]==='Date_promesse'||c[0]==='retard')&&r.late?'late':'')+(c[0]==='Qte_Due'&&r.Qte_Due>0?' wa':'')+((c[0]==='Qte_Mise_Disposition'||c[0]==='Qte_Rec')&&r[c[0]]>0?' ok':'');return '<td class="'+cls+(mobileColumns.has(c[0])?' mobile-cell':'')+'" data-key="'+c[0]+'" data-l="'+c[1]+'" title="'+String(v).replace(/<[^>]*>/g,'').replace(/"/g,'&quot;')+'">'+(c[0]==='Status'&&v?'<span class="tag s-'+escHtml(String(r[c[0]]).replace(/ /g,'_'))+'">'+v+'</span>':v)+'</td>'}).join('')+'</tr>').join('');
   $('#cnt').textContent=view.length.toLocaleString('fr-FR')+' résultat(s)';$('#pn').textContent='Page '+(page+1)+' / '+pages;$('#pv').disabled=page===0;$('#nx').disabled=page>=pages-1;
 }
@@ -718,6 +760,75 @@ $('#activeFilterList').onclick = event=>{
   $('#'+(['q','q2','fNum'].includes(id)?id:'bReset')).focus();
 };
 
+const actionPlanKey='sigma_action_plan_v1';
+let actionPlan={};
+try{
+  const stored=JSON.parse(localStorage.getItem(actionPlanKey)||'{}');
+  if(stored&&typeof stored==='object'&&!Array.isArray(stored)) actionPlan=stored;
+}catch(_){}
+const actionStatuses=['À faire','En cours','En attente fournisseur','Terminé'];
+function actionFormMarkup(row){
+  const item=actionPlan[row._id]||{};
+  const choices=['',...actionStatuses].map(status=>'<option value="'+escHtml(status)+'" '+(item.status===status?'selected':'')+'>'+(status||'Pas d’action')+'</option>').join('');
+  return '<section class="row-action-plan"><div class="row-action-head"><div><h3>Plan d’action équipe</h3><p>Cette action peut être partagée avec l’équipe via le fichier JSON.</p></div><span class="row-action-mark">À SUIVRE</span></div><div class="row-action-fields"><label>Statut<select id="rowActionStatus">'+choices+'</select></label><label>Responsable<input id="rowActionOwner" maxlength="100" placeholder="Nom du responsable" value="'+escHtml(item.owner||'')+'"></label><label class="wide">Action à réaliser<input id="rowActionText" maxlength="300" placeholder="Ex. confirmer la date de livraison" value="'+escHtml(item.action||'')+'"></label><label>Échéance<input id="rowActionDue" type="date" value="'+escHtml(item.dueDate||'')+'"></label><label class="wide">Commentaire<textarea id="rowActionNote" rows="2" maxlength="1000" placeholder="Contexte ou dernier retour fournisseur">'+escHtml(item.comment||'')+'</textarea></label></div><div class="row-action-footer"><button id="saveRowAction" type="button">Enregistrer l’action</button><span id="rowActionFeedback" role="status"></span></div></section>';
+}
+function updateActionPlanSummary(){
+  const eligible=rows.filter(r=>actionPlan[r._id]);
+  const open=eligible.filter(r=>actionPlan[r._id].status!=='Terminé');
+  const overdue=open.filter(r=>/^\d{4}-\d{2}-\d{2}$/.test(actionPlan[r._id].dueDate||'')&&new Date(actionPlan[r._id].dueDate+'T00:00:00')<today);
+  const done=eligible.length-open.length;
+  $('#actionPlanSummary').textContent='Actions ouvertes : '+fn(open.length)+' · En retard : '+fn(overdue.length)+' · Terminées : '+fn(done);
+}
+function persistActionPlan(){
+  try{localStorage.setItem(actionPlanKey,JSON.stringify(actionPlan));return true}catch(_){return false}
+}
+function validateActionEntry(item){
+  if(!item||typeof item!=='object'||Array.isArray(item))return null;
+  const clean=(value,max)=>typeof value==='string'?value.trim().slice(0,max):'';
+  const status=actionStatuses.includes(item.status)?item.status:'À faire';
+  const dueDate=/^\d{4}-\d{2}-\d{2}$/.test(item.dueDate||'')?item.dueDate:'';
+  return {da:clean(item.da,100),line:clean(item.line,100),article:clean(item.article,150),supplier:clean(item.supplier,200),owner:clean(item.owner,100),action:clean(item.action,300),dueDate,status,comment:clean(item.comment,1000),updatedAt:clean(item.updatedAt,40)||new Date().toISOString()};
+}
+$('#exportActionPlan').onclick=()=>{
+  const payload={format:'sigma-action-plan-v1',exportedAt:new Date().toISOString(),actions:actionPlan};
+  dl('SIGMA_plan_action.json',JSON.stringify(payload,null,2));
+  $('#actionPlanMessage').textContent='Plan exporté. Dépose le JSON dans le dossier partagé pour le transmettre à l’équipe.';
+};
+$('#importActionPlan').onclick=()=>$('#actionPlanFile').click();
+$('#actionPlanFile').onchange=async event=>{
+  const file=event.target.files?.[0];event.target.value='';if(!file)return;
+  try{
+    if(file.size>2*1024*1024)throw new Error('Le fichier dépasse 2 Mo.');
+    const payload=JSON.parse(await file.text());
+    if(payload?.format!=='sigma-action-plan-v1'||!payload.actions||typeof payload.actions!=='object'||Array.isArray(payload.actions))throw new Error('Ce fichier ne correspond pas à un plan d’action SIGMA.');
+    let merged=0;
+    for(const [key,value] of Object.entries(payload.actions)){
+      if(!key||key.length>300)continue;
+      const incoming=validateActionEntry(value);if(!incoming)continue;
+      const current=actionPlan[key];
+      if(!current||String(incoming.updatedAt)>=String(current.updatedAt||'')){actionPlan[key]=incoming;merged++}
+    }
+    if(!persistActionPlan())throw new Error('Mémoire du navigateur saturée.');
+    updateActionPlanSummary();if(rows.length)render();
+    $('#actionPlanMessage').textContent=merged+' action(s) importée(s) ou actualisée(s).';
+  }catch(error){$('#actionPlanMessage').textContent='Import impossible : '+error.message}
+};
+function saveRowAction(row){
+  const rawStatus=$('#rowActionStatus').value;
+  const status=rawStatus||'À faire';
+  const action=$('#rowActionText').value.trim();
+  const owner=$('#rowActionOwner').value.trim();
+  const dueDate=$('#rowActionDue').value;
+  const comment=$('#rowActionNote').value.trim();
+  if(!action&&!owner&&!dueDate&&!comment&&!rawStatus){delete actionPlan[row._id]}
+  else if(!action){$('#rowActionFeedback').textContent='Renseigne l’action à réaliser.';$('#rowActionText').focus();return}
+  else actionPlan[row._id]={da:String(row.DA??''),line:String(row.Num??''),article:String(row.Article??''),supplier:String(row.Fournisseur??''),owner:owner.slice(0,100),action:action.slice(0,300),dueDate,status,comment:comment.slice(0,1000),updatedAt:new Date().toISOString()};
+  if(!persistActionPlan()){$('#rowActionFeedback').textContent='Enregistrement impossible sur cet appareil.';return}
+  $('#rowActionFeedback').textContent='Action enregistrée sur cet appareil.';
+  $('#actionPlanMessage').textContent='Pour partager les changements, exporte le plan JSON et dépose-le dans le dossier commun.';
+  updateActionPlanSummary();render();
+}
+
 $('#bFile').onclick=$('#drop').onclick=()=>$('#file').click();
 $('#file').onchange=e=>{const file=e.target.files[0];e.target.value='';if(file)load(file)};
 ['dragover','dragleave','drop'].forEach(t=>document.addEventListener(t,e=>{e.preventDefault();$('#drop').classList.toggle('on',t==='dragover');if(t==='drop'&&e.dataTransfer.files[0])load(e.dataTransfer.files[0])}));
@@ -728,9 +839,10 @@ async function dl(name,data){const d=window.claude?await claude.use('downloads')
 function gn(r){try{return localStorage.getItem('n:'+r._id)||''}catch(_){return ''}}
 $('#bXl').onclick=()=>{if(typeof XLSX==='undefined'){alert('Le module Excel est indisponible. Vérifiez votre connexion puis rouvrez SIGMA PC.');return}const data=view.map(r=>{const o={};COLS.forEach(c=>o[c[1]]=r[c[0]]);o.Note=gn(r);o['Modifié']=r._e?'oui':'';return o});const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(data),'Filtré');dl('sigma_filtre.xlsx',XLSX.write(wb,{type:'array',bookType:'xlsx'}))};
 $('#tb').onclick=e=>{const tr=e.target.closest('tr');if(!tr)return;const r=view[+tr.dataset.i];
-$('#md').innerHTML='<div><div style="display:flex;justify-content:space-between;align-items:center"><b>DA '+escHtml(r.DA)+' · ligne '+escHtml(r.Num)+'</b><span><button id="rs">Rétablir l’original</button> <button id="x">Fermer</button></span></div><div class="detail-actions"><button id="favoriteAction" type="button"></button><a id="followUpMail" hidden>Préparer une relance</a></div><p class="sub">Note personnelle (enregistrée dans ce navigateur)</p><textarea id="nt" rows="3">'+escHtml(gn(r))+'</textarea><table>'+EDIT.map(k=>'<tr><td>'+k+'</td><td><input data-k="'+k+'" style="width:100%" value="'+String(r[k]??'').replace(/&/g,'&amp;').replace(/"/g,'&quot;')+'"></td></tr>').join('')+Object.entries(r).filter(([k,v])=>k[0]!=='_'&&!EDIT.includes(k)&&typeof v!=='boolean'&&v!==''&&v!=null).map(([k,v])=>'<tr><td>'+escHtml(k)+'</td><td>'+(v instanceof Date?fd(v):escHtml(v))+'</td></tr>').join('')+'</table></div>';
+$('#md').innerHTML='<div><div style="display:flex;justify-content:space-between;align-items:center"><b>DA '+escHtml(r.DA)+' · ligne '+escHtml(r.Num)+'</b><span><button id="rs">Rétablir l’original</button> <button id="x">Fermer</button></span></div><div class="detail-actions"><button id="favoriteAction" type="button"></button><a id="followUpMail" hidden>Préparer une relance</a></div>'+actionFormMarkup(r)+'<p class="sub">Note personnelle (enregistrée dans ce navigateur)</p><textarea id="nt" rows="3">'+escHtml(gn(r))+'</textarea><table>'+EDIT.map(k=>'<tr><td>'+k+'</td><td><input data-k="'+k+'" style="width:100%" value="'+String(r[k]??'').replace(/&/g,'&amp;').replace(/"/g,'&quot;')+'"></td></tr>').join('')+Object.entries(r).filter(([k,v])=>k[0]!=='_'&&!EDIT.includes(k)&&typeof v!=='boolean'&&v!==''&&v!=null).map(([k,v])=>'<tr><td>'+escHtml(k)+'</td><td>'+(v instanceof Date?fd(v):escHtml(v))+'</td></tr>').join('')+'</table></div>';
 bindFollowUpActions(r);
 $('#md').classList.remove('hide');
+$('#saveRowAction').onclick=()=>saveRowAction(r);
 $('#rs').onclick=()=>document.querySelectorAll('#md input[data-k]').forEach(i=>i.value=r._o[i.dataset.k]??'');
 $('#x').onclick=()=>{const ed={};document.querySelectorAll('#md input[data-k]').forEach(i=>{const k=i.dataset.k;r[k]=i.value;if(i.value!==String(r._o[k]??''))ed[k]=i.value});r._e=Object.keys(ed).length>0;r._s=searchText(r);try{r._e?localStorage.setItem('e:'+r._id,JSON.stringify(ed)):localStorage.removeItem('e:'+r._id)}catch(_){}try{const t=$('#nt').value;t?localStorage.setItem('n:'+r._id,t):localStorage.removeItem('n:'+r._id)}catch(_){}$('#md').classList.add('hide');render()}};
 $('#bAll').onclick=()=>{if(typeof XLSX==='undefined'){alert('Le module Excel est indisponible. Vérifiez votre connexion puis rouvrez SIGMA PC.');return}const data=rows.map(r=>{const o={};for(const k in r)if(k[0]!=='_'&&k!=='late'&&k!=='retard')o[k]=r[k];return o});const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(data),'SIGMA');dl('sigma_modifie.xlsx',XLSX.write(wb,{type:'array',bookType:'xlsx'}))};
