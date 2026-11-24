@@ -18,3 +18,5 @@ Partage du plan d’action : enregistrer l’action depuis le détail d’une li
 Publication : décompresser l’archive, téléverser les fichiers à la racine du dépôt GitHub Pages et valider les changements. Conserver ces fichiers ensemble. Après publication, ouvrir le lien SIGMA puis actualiser la page sur les appareils.
 
 Nouvelle fonction : redimensionner les colonnes du tableau PC en faisant glisser le bord droit de l’en-tête. Les largeurs restent mémorisées sur le navigateur utilisé. Le bouton « Réinitialiser les largeurs » restaure les dimensions initiales.
+
+Correction : démarrage JavaScript réparé pour que le formulaire de déverrouillage fonctionne.

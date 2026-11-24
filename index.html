@@ -931,7 +931,7 @@ for(const container of [$('#trackingPanel'),$('#purchasesPanel')]){
   });
 }
 
-$('#bFile').onclick=$('#drop').onclick=()=>$('#file').click();'#drop').onclick=()=>$('#file').click();
+$('#bFile').onclick=$('#drop').onclick=()=>$('#file').click();
 $('#file').onchange=e=>{const file=e.target.files[0];e.target.value='';if(file)load(file)};
 ['dragover','dragleave','drop'].forEach(t=>document.addEventListener(t,e=>{e.preventDefault();$('#drop').classList.toggle('on',t==='dragover');if(t==='drop'&&e.dataTransfer.files[0])load(e.dataTransfer.files[0])}));
 $('#bCsv').onclick=()=>{const esc=v=>'"'+String(v instanceof Date?fd(v):v??'').replace(/"/g,'""')+'"';
