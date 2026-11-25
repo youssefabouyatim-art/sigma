@@ -210,6 +210,7 @@ header{padding:14px 28px}header h1{font-size:20px}
 .action-pill.open { color:#88500a; border-color:#e6a642; background:#fff2d9 }
 .action-pill.done { color:#176b43; border-color:#48a77b; background:#e3f5eb }
 .action-pill.none { color:#687386; border-color:#d7dde5; background:#f2f4f7 }
+.action-pill.late { color:#a11925; border-color:#e34b57; background:#fde7e9 }
 [data-sigma-view="mobile"] .action-plan-toolbar { align-items:stretch; margin-top:8px; padding:12px; gap:10px }
 [data-sigma-view="mobile"] .action-plan-heading { min-width:0 }
 [data-sigma-view="mobile"] .action-plan-controls { display:grid; grid-template-columns:1fr 1fr; width:100% }
@@ -445,6 +446,11 @@ const escHtml=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'
 const day=d=>Date.UTC(d.getFullYear(),d.getMonth(),d.getDate())/864e5;
 function asDate(value){
   if(value instanceof Date) return Number.isFinite(value.getTime()) ? value : null;
+  // Excel may expose a date cell as its serial number instead of a Date object.
+  if(typeof value === 'number' && Number.isFinite(value) && value > 0){
+    const date=new Date(Date.UTC(1899,11,30)+Math.floor(value)*86400000);
+    return Number.isFinite(date.getTime()) ? date : null;
+  }
   if(typeof value !== 'string') return null;
   const iso=/^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
   const fr=/^(\d{1,2})[/-](\d{1,2})[/-](\d{4})$/.exec(value);
@@ -572,6 +578,8 @@ function displayRows(raw,fileName){
       x.Mnt=num(x.Mnt);x.Quantite=num(x.Quantite);x.Qte_Rec=num(x.Qte_Rec);x.Qte_Due=num(x.Qte_Due);x.Qte_Mise_Disposition=num(x.Qte_Mise_Disposition);
       for(const [key,,type] of COLS)if(type==='d')x[key]=asDate(x[key])??x[key];
       const delay=x.Date_promesse instanceof Date ? day(today)-day(x.Date_promesse) : 0;
+      // Keep the delay visible for every ordered line with an outstanding quantity.
+      // A zero available stock does not cancel the overdue status; it makes it critical.
       x.late=delay>0&&outstanding(x);x.retard=x.late?delay:0;x._id=x.DA+'|'+x.Num;x._o={};EDIT.forEach(k=>x._o[k]=x[k]);try{const e=JSON.parse(localStorage.getItem('e:'+x._id)||'null');if(e){EDIT.forEach(k=>{if(typeof e[k]==='string')x[k]=e[k]});x._e=true}}catch(_){}
       x._s=searchText(x);return x});
     $('#meta').textContent=fileName+' · '+rows.length.toLocaleString('fr-FR')+' lignes';
@@ -696,12 +704,12 @@ function render(){
   renderPurchaseBars('#monthlyAmounts',charts.months,()=> '#4453d1','month');
 
   $('#amounts').innerHTML=[...m.currency].sort(([a],[b])=>String(a).localeCompare(String(b))).map(([name,value])=>'<span><b>'+escHtml(name)+'</b> '+fn(value)+'</span>').join('')||'<p class="sub">Aucun montant disponible.</p>';
-  view.forEach(r=>r.Plan_action=actionPlan[r._id]?.status||'Aucune action');
+  view.forEach(r=>r.Plan_action=actionPlan[r._id]?.status||(r.late?'Article en retard':'Aucune action'));
   const {k,d}=sort;view.sort((a,b)=>{const x=a[k],y=b[k];return (x>y?1:x<y?-1:0)*d});
   const pages=Math.max(1,Math.ceil(view.length/PS));page=Math.min(page,pages-1);
   $('#th').innerHTML='<tr>'+COLS.map(c=>'<th data-k="'+c[0]+'" class="'+(c[2]==='n'?'r':'')+'">'+c[1]+(sort.k===c[0]?(sort.d>0?' ▲':' ▼'):'')+'</th>').join('')+'</tr>';
-  $('#tb').innerHTML=view.slice(page*PS,page*PS+PS).map((r,i)=>'<tr class="'+(r.late?'r-late':outstanding(r)?'r-wa':r.Qte_Rec>0&&r.Qte_Due<=0?'r-ok':'')+'" data-i="'+(page*PS+i)+'">'+COLS.map(c=>{let v=r[c[0]];v=c[2]==='d'?escHtml(fd(v)||v):c[2]==='n'?(c[0]==='retard'&&!v?'':fn(v)):escHtml(v);if(c[0]==='Plan_action')v='<span class="action-pill '+(r.Plan_action==='Terminé'?'done':r.Plan_action==='Aucune action'?'none':'open')+'">'+escHtml(r.Plan_action)+'</span>';if(c[0]==='DA'&&favorites.has(r._id))v+=' <span class="favorite-star" title="Favori">★</span>';if(c[0]==='DA'&&gn(r))v+=' <span class="nt" title="Note">✎</span>';if(c[0]==='Article'&&r._e)v+=' <span class="nt" title="Modifié">●</span>';if(c[0]==='retard'&&v)v='<span class="tag '+(r.retard>90?'g3':r.retard>30?'g2':'g1')+'">'+v+'</span>';
-    const cls=(c[2]==='n'?'r ':'')+((c[0]==='Date_promesse'||c[0]==='retard')&&r.late?'late':'')+(c[0]==='Qte_Due'&&r.Qte_Due>0?' wa':'')+((c[0]==='Qte_Mise_Disposition'||c[0]==='Qte_Rec')&&r[c[0]]>0?' ok':'');return '<td class="'+cls+(mobileColumns.has(c[0])?' mobile-cell':'')+'" data-key="'+c[0]+'" data-l="'+c[1]+'" title="'+String(v).replace(/<[^>]*>/g,'').replace(/"/g,'&quot;')+'">'+(c[0]==='Status'&&v?'<span class="tag s-'+escHtml(String(r[c[0]]).replace(/ /g,'_'))+'">'+v+'</span>':v)+'</td>'}).join('')+'</tr>').join('');
+  $('#tb').innerHTML=view.slice(page*PS,page*PS+PS).map((r,i)=>'<tr class="'+(r.late?'r-late':outstanding(r)?'r-wa':r.Qte_Rec>0&&r.Qte_Due<=0?'r-ok':'')+'" data-i="'+(page*PS+i)+'">'+COLS.map(c=>{let v=r[c[0]];v=c[2]==='d'?escHtml(fd(v)||v):c[2]==='n'?(c[0]==='retard'&&!v?'':fn(v)):escHtml(v);if(c[0]==='Plan_action')v='<span class="action-pill '+(r.Plan_action==='Terminé'?'done':r.Plan_action==='Aucune action'?'none':r.Plan_action==='Article en retard'?'late':'open')+'">'+escHtml(r.Plan_action)+'</span>';if(c[0]==='DA'&&favorites.has(r._id))v+=' <span class="favorite-star" title="Favori">★</span>';if(c[0]==='DA'&&gn(r))v+=' <span class="nt" title="Note">✎</span>';if(c[0]==='Article'&&r._e)v+=' <span class="nt" title="Modifié">●</span>';if(c[0]==='retard'&&v)v='<span class="tag '+(r.retard>90?'g3':r.retard>30?'g2':'g1')+'">'+v+'</span>';
+    const cls=(c[2]==='n'?'r ':'')+((c[0]==='Date_promesse'||c[0]==='retard')&&r.late?'late':'')+(c[0]==='Qte_Due'&&r.Qte_Due>0?' wa':'')+(c[0]==='Qte_Mise_Disposition'&&r._stockZero?' stock-zero':'')+((c[0]==='Qte_Mise_Disposition'||c[0]==='Qte_Rec')&&r[c[0]]>0?' ok':'');return '<td class="'+cls+(mobileColumns.has(c[0])?' mobile-cell':'')+'" data-key="'+c[0]+'" data-l="'+c[1]+'" title="'+String(v).replace(/<[^>]*>/g,'').replace(/"/g,'&quot;')+'">'+(c[0]==='Status'&&v?'<span class="tag s-'+escHtml(String(r[c[0]]).replace(/ /g,'_'))+'">'+v+'</span>':v)+'</td>'}).join('')+'</tr>').join('');
   applyColumnWidths();bindColumnResizers();
   $('#cnt').textContent=view.length.toLocaleString('fr-FR')+' résultat(s)';$('#pn').textContent='Page '+(page+1)+' / '+pages;$('#pv').disabled=page===0;$('#nx').disabled=page>=pages-1;
 }
@@ -952,6 +960,15 @@ function gn(r){try{return localStorage.getItem('n:'+r._id)||''}catch(_){return '
 $('#bXl').onclick=()=>{if(typeof XLSX==='undefined'){alert('Le module Excel est indisponible. Vérifiez votre connexion puis rouvrez SIGMA PC.');return}const data=view.map(r=>{const o={};COLS.forEach(c=>o[c[1]]=r[c[0]]);o.Note=gn(r);o['Modifié']=r._e?'oui':'';return o});const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(data),'Filtré');dl('sigma_filtre.xlsx',XLSX.write(wb,{type:'array',bookType:'xlsx'}))};
 $('#tb').onclick=e=>{const tr=e.target.closest('tr');if(!tr)return;const r=view[+tr.dataset.i];
 $('#md').innerHTML='<div><div style="display:flex;justify-content:space-between;align-items:center"><b>DA '+escHtml(r.DA)+' · ligne '+escHtml(r.Num)+'</b><span><button id="rs">Rétablir l’original</button> <button id="x">Fermer</button></span></div><div class="detail-actions"><button id="favoriteAction" type="button"></button><a id="followUpMail" hidden>Préparer une relance</a></div>'+actionFormMarkup(r)+'<p class="sub">Note personnelle (enregistrée dans ce navigateur)</p><textarea id="nt" rows="3">'+escHtml(gn(r))+'</textarea><table>'+EDIT.map(k=>'<tr><td>'+k+'</td><td><input data-k="'+k+'" style="width:100%" value="'+String(r[k]??'').replace(/&/g,'&amp;').replace(/"/g,'&quot;')+'"></td></tr>').join('')+Object.entries(r).filter(([k,v])=>k[0]!=='_'&&!EDIT.includes(k)&&typeof v!=='boolean'&&v!==''&&v!=null).map(([k,v])=>'<tr><td>'+escHtml(k)+'</td><td>'+(v instanceof Date?fd(v):escHtml(v))+'</td></tr>').join('')+'</table></div>';
+const descriptionRow=$('#md input[data-k="Des_Article"]')?.closest('tr');
+if(descriptionRow){
+  descriptionRow.title='Double-cliquez pour rechercher la désignation sur Google';
+  descriptionRow.style.cursor='help';
+  descriptionRow.addEventListener('dblclick',()=>{
+    const description=$('#md input[data-k="Des_Article"]').value.trim();
+    if(description)window.open('https://www.google.com/search?q='+encodeURIComponent(description),'_blank','noopener');
+  });
+}
 bindFollowUpActions(r);
 $('#md').classList.remove('hide');
 $('#saveRowAction').onclick=()=>saveRowAction(r);
