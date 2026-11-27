@@ -1,8 +1,6 @@
-SIGMA — version mise à jour
+SIGMA — mise à jour 2
 
-Contenu prêt à intégrer dans le dossier GitHub Pages de l’application.
-La désignation d’un article peut être double-cliquée pour lancer une recherche Google.
-Les lignes en retard sans action enregistrée affichent « Article en retard » en rouge.
-Les dates Excel sont normalisées et les stocks nuls sont mis en évidence.
+Contenu à extraire dans le dossier racine du dépôt GitHub Pages, en remplaçant les fichiers correspondants.
+Fonctions incluses : filtre « Retard et stock nul », échéances sous 7 jours, date du dernier import, double-clic sur la désignation pour rechercher sur Google, « Article en retard » en rouge si aucune action n’est saisie, copie des informations de ligne.
 
-Pour publier : remplacer les fichiers correspondants dans le dépôt GitHub Pages, puis publier les changements.
+Ne téléversez pas le ZIP lui-même : extrayez les fichiers puis téléversez-les dans le dépôt.
