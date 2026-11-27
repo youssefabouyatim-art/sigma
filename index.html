@@ -108,13 +108,11 @@ header{padding:14px 28px}header h1{font-size:20px}
 .mobile-only { display: none }
 [data-sigma-view="mobile"] .mobile-top-toggle { display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;margin:0 0 12px;padding:11px 14px;text-align:left;border-left:4px solid #a3540c;background:var(--card);font-weight:650 }
 [data-sigma-view="mobile"] #mobileTopAction { color:var(--ac);font-weight:700 }
-.export-menu{display:contents}.export-menu>summary{display:none}.export-menu-items{display:contents}.header-import-date{display:block;color:var(--mut);font-size:11px;margin-left:55px}
-[data-sigma-view="mobile"] .export-menu{display:block;position:relative}
+.export-menu{display:contents}.export-menu>summary{display:none}.export-menu-items{display:contents}[data-sigma-view="mobile"] .export-menu{display:block;position:relative}
 [data-sigma-view="mobile"] .export-menu>summary{display:block;list-style:none;padding:10px 14px;border:1px solid var(--bd);border-radius:10px;background:var(--card);font-weight:650}
 [data-sigma-view="mobile"] .export-menu>summary::-webkit-details-marker{display:none}
 [data-sigma-view="mobile"] .export-menu-items{display:none;position:absolute;right:0;top:100%;z-index:15;min-width:210px;padding:8px;background:var(--card);border:1px solid var(--bd);border-radius:10px;box-shadow:0 8px 20px #0003}
 [data-sigma-view="mobile"] .export-menu[open] .export-menu-items{display:grid;gap:6px}
-[data-sigma-view="mobile"] .header-import-date{font-size:10px;margin:4px 0 0 52px}
 [data-sigma-view="mobile"] .mobile-priority-shortcut{display:flex;width:100%;margin:0 0 10px;color:var(--tx);background:var(--card);border-color:#d33}
 [data-sigma-view="mobile"] #headActions{gap:6px}
 [data-sigma-view="mobile"] #headActions>button{padding:8px 10px;font-size:12px}
@@ -920,7 +918,6 @@ function recordImportReview(fileName){
   const m=metrics(rows),now=new Date();
   const snapshot={loadedAt:now.toISOString(),fileName:String(fileName||'Classeur SIGMA'),lineCount:rows.length,open:m.open,late:m.late,critical:m.critical};
   $('#dataFreshness').textContent=snapshot.fileName+' · '+fn(rows.length)+' lignes · chargé le '+now.toLocaleString('fr-FR',{dateStyle:'short',timeStyle:'short'});
-  $('#headerImportDate').textContent='Dernier import : '+now.toLocaleString('fr-FR',{dateStyle:'short',timeStyle:'short'});
   const quality={
     emptyStatus:rows.filter(r=>!String(r.Status??'').trim()).length,
     emptySupplier:rows.filter(r=>hasOrder(r)&&!String(r.Fournisseur??'').trim()).length,

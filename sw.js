@@ -1,4 +1,4 @@
-const CACHE='sigma-v13';
+const CACHE='sigma-v15';
 const CDN='https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
 const CORE=['./','./index.html','./data.enc','./manifest.webmanifest','./icon-180.png','./icon-192.png','./icon-512.png',CDN];
 self.addEventListener('install',e=>{
